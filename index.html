@@ -1,0 +1,2768 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Relatório Diagnóstico Dinâmico – SIADI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg1:#0b5cff;      /* azul forte topo */
+      --bg2:#16a1ff;      /* azul/ciano base */
+      --ink:#0f172a;      /* texto escuro */
+      --card:#ffffff;     /* cartão */
+      --line:#cbd5e1;     /* borda clara */
+      --brand:#1d4ed8;    /* azul botões */
+      --brand-2:#0ea5e9;  /* ciano botões */
+      --muted:#475569;
+    }
+    *{ box-sizing:border-box }
+    body{
+      margin:0;
+      min-height:100vh;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      color: var(--ink);
+      font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      overflow-x:hidden;
+    }
+
+    /* HERO (faixa superior com sólidos) */
+    .hero{
+      position:relative;
+      padding:34px 18px 90px;
+      color:#e6f0ff;
+      text-align:center;
+    }
+    .hero h1{
+      margin:0;
+      font-weight:900;
+      letter-spacing:.2px;
+      font-size: clamp(22px, 3vw, 32px);
+      color:#fff;
+      text-shadow:0 2px 14px rgba(0,0,0,.15);
+    }
+    .hero .school{
+      margin-top:8px;
+      font-size: clamp(14px, 2.2vw, 18px);
+      color:#eaf2ff;
+      opacity:.95;
+    }
+    .hero .slogan{
+      margin-top:6px;
+      font-size: clamp(12px, 1.8vw, 15px);
+      color:#cfe4ff;
+      opacity:.9;
+    }
+
+    /* Sólidos geométricos decorativos (SVG) */
+    .solidos{
+      position:absolute; inset:0; pointer-events:none; overflow:visible;
+    }
+    .shape{ position:absolute; opacity:.9; filter:drop-shadow(0 8px 16px rgba(0,0,0,.18)); }
+    .float-slow  { animation: float 7s ease-in-out infinite; }
+    .float-medium{ animation: float 6s ease-in-out infinite .4s; }
+    @keyframes float{
+      0%,100%{ transform:translateY(0) }
+      50%{ transform:translateY(-12px) }
+    }
+
+    /* Cilindro em faixa ocupando todo o topo */
+    .cylinder-top{
+      position:absolute;
+      left:0;
+      top:-20px;         /* sobe um pouquinho pra “abraçar” o topo */
+      width:100%;
+      height:160px;      /* ajuste a altura como preferir */
+      opacity:.22;       /* transparência pra não competir com o texto */
+      pointer-events:none;
+    }
+
+    /* Cartão principal */
+    .container{
+      background: var(--card);
+      padding: 28px;
+      border-radius: 16px;
+      max-width: 1100px;
+      margin: -68px auto 34px; /* sobrepõe o hero */
+      box-shadow: 0 18px 40px rgba(2,6,23,.24);
+      border: 1px solid var(--line);
+    }
+    h2,h3{ text-align:center; color:#0f172a; margin:0 0 10px }
+    .sub{ text-align:center; color: var(--muted); margin-top: 4px }
+
+    /* Barra de séries (centralizada com fundo azul) */
+    .serie-bar{
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      padding: 14px;
+      border-radius: 12px;
+      margin: 18px 0 22px;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.12);
+    }
+    .serie-btn{
+      background: rgba(255,255,255,.92);
+      color: #0f172a;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .06s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .serie-btn:hover{ transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,.1) }
+    .serie-btn.active{
+      background:#ffffff;
+      outline: 2px solid #fff;
+      box-shadow: 0 0 0 3px rgba(255,255,255,.35);
+    }
+
+    label{ font-weight:700; display:block; margin-top:12px }
+    input[type="text"]{
+      width:100%; padding:10px 12px; margin-top:6px;
+      border-radius:10px; border:1px solid var(--line);
+      outline:none;
+    }
+    .grid{
+      display:grid; gap:16px; margin-top:10px;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+    }
+    @media (max-width:800px){ .grid{ grid-template-columns: 1fr } }
+
+    .actions{ display:flex; gap:12px; flex-wrap:wrap; margin-top:18px }
+    button.primary{
+      background: var(--brand);
+      color:#fff; border:none; border-radius:10px;
+      padding: 12px 18px; font-weight: 800; cursor:pointer;
+    }
+    button.primary:hover{ background:#1e40af }
+    button.soft{
+      background:#f1f5f9; color:#0f172a; border:1px solid var(--line);
+      border-radius:10px; padding: 12px 18px; font-weight:700; cursor:pointer;
+    }
+    .tag{
+      display:inline-block; padding:6px 10px; border-radius:999px;
+      background:#eff6ff; color:#1e3a8a; border:1px solid #bfdbfe; font-size:13px;
+    }
+
+    table{ width:100%; border-collapse:collapse; margin-top:16px; font-size:14px }
+    th,td{ border:1px solid #9aa6b2; padding:8px; text-align:left; vertical-align: top }
+    th{ background:#f1f5f9 }
+    .box{
+      margin-top:18px; padding:16px; background:#f8fafc; border-radius:12px; border:1px solid var(--line)
+    }
+    .hint{ color:#eaf2ff; font-size:13px; margin: -8px auto 24px; text-align:center }
+  </style>
+</head>
+<body>
+  <!-- HERO com nome da escola e sólidos geométricos -->
+  <section class="hero" aria-label="Cabeçalho">
+    <h1>Relatório Diagnóstico Dinâmico – SIADI</h1>
+    <div class="school">Escola de Ensino Fundamental <strong>Henrique Gonçalves da Justa</strong></div>
+    <div class="slogan">Intervenções pedagógicas personalizadas com foco em competências e descritores</div>
+
+    <!-- Sólidos geométricos decorativos (SVG) -->
+    <div class="solidos" aria-hidden="true">
+      <!-- CILINDRO FULL-WIDTH NO TOPO -->
+      <svg class="shape cylinder-top" viewBox="0 0 1440 160" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="ctop" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#38bdf8"/>
+            <stop offset="100%" stop-color="#0ea5e9"/>
+          </linearGradient>
+        </defs>
+        <!-- “tampa” superior do cilindro -->
+        <ellipse cx="720" cy="30" rx="720" ry="30" fill="#38bdf8"/>
+        <!-- corpo do cilindro -->
+        <rect x="0" y="30" width="1440" height="100" fill="url(#ctop)"/>
+        <!-- “tampa” inferior do cilindro -->
+        <ellipse cx="720" cy="130" rx="720" ry="30" fill="#0284c7"/>
+      </svg>
+
+      <!-- Cubo (esquerda) -->
+      <svg class="shape float-slow" width="110" height="110" style="left:6%; top:18%">
+        <defs>
+          <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#60a5fa"/><stop offset="100%" stop-color="#2563eb"/>
+          </linearGradient>
+        </defs>
+        <g transform="translate(10,10)">
+          <polygon points="50,0 100,30 50,60 0,30" fill="url(#g1)"/>
+          <polygon points="50,60 100,30 100,80 50,110" fill="#1e40af"/>
+          <polygon points="50,60 0,30 0,80 50,110" fill="#3b82f6"/>
+        </g>
+      </svg>
+
+      <!-- Pirâmide (direita) -->
+      <svg class="shape float-medium" width="120" height="120" style="right:8%; top:8%">
+        <defs>
+          <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#93c5fd"/><stop offset="100%" stop-color="#1d4ed8"/>
+          </linearGradient>
+        </defs>
+        <g transform="translate(10,5)">
+          <polygon points="50,0 100,70 50,100 0,70" fill="url(#g2)"/>
+          <polygon points="50,0 100,70 50,100" fill="#1d4ed8" opacity=".9"/>
+          <polygon points="50,0 0,70 50,100" fill="#60a5fa" opacity=".95"/>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <p class="hint">Dica: esta ferramenta usa 26 questões por série e gera estratégias de reforço baseadas em metodologias ativas e jogos.</p>
+
+  <!-- CARTÃO PRINCIPAL -->
+  <div class="container" role="main">
+    <h2>Gerador de Relatório de Intervenção</h2>
+    <p class="sub">Selecione a <strong>série</strong>, informe os dados do aluno e digite as <em>questões erradas</em> (ex.: 1, 3, 5, 12).</p>
+
+    <!-- BARRA DE SÉRIES -->
+    <div class="serie-bar" id="serieBar">
+      <button class="serie-btn active" data-ano="6" onclick="setAno(6)">6º ano</button>
+      <button class="serie-btn" data-ano="7" onclick="setAno(7)">7º ano</button>
+      <button class="serie-btn" data-ano="8" onclick="setAno(8)">8º ano</button>
+      <button class="serie-btn" data-ano="9" onclick="setAno(9)">9º ano</button>
+    </div>
+
+    <div class="grid">
+      <div>
+        <label for="aluno">Nome do Aluno:</label>
+        <input type="text" id="aluno" placeholder="Digite o nome do aluno" />
+      </div>
+      <div>
+        <label for="turma">Turma e Série:</label>
+        <input type="text" id="turma" placeholder="Ex.: 6º A | 7º B | 8º A | 9º B" />
+      </div>
+    </div>
+
+    <label for="erros">Questões com erro (ex.: 1,3,5,12):</label>
+    <input type="text" id="erros" placeholder="Digite os números das questões com erro separados por vírgula" />
+
+    <div class="actions">
+      <button class="primary" onclick="gerarRelatorio()">Gerar Relatório</button>
+      <button class="soft" onclick="limpar()">Limpar</button>
+      <span id="serieInfo" class="tag">Série ativa: 6º ano</span>
+    </div>
+
+    <div id="relatorio" aria-live="polite"></div>
+  </div>
+
+  <script>
+    /* ============================
+       Bancos de questões por série
+       ============================ */
+
+    // 6º ano
+  const questoes_6 = {
+  1:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT6T1D19.PB9",
+    "Resolver problema com números naturais, envolvendo diferentes significados das operações (adição, subtração, multiplicação, divisão, potenciação).",
+    {
+      metodologiasAtivas: [
+        "Rotação por estações com problemas contextualizados (compra, receita, orçamento).",
+        "Sala invertida: vídeo curto sobre significados das operações; em sala, resolver desafios.",
+        "PBL: planejar um lanche da turma com orçamento fixo, justificando cálculos.",
+        "Think–Pair–Share: comparar diferentes estratégias para o mesmo problema."
+      ],
+      jogos: [
+        "Batalha de Operações (cartas com operadores e desafios).",
+        "Dominó das Operações (problema ↔ resultado).",
+        "Bingo das Potências (quadrados e cubos até 10).",
+        "Trilha dos Desafios (casas de operação e chefes de potência)."
+      ],
+      intervencaoRapida: [
+        "Miniaula com material manipulável (cubinhos, tiras numéricas).",
+        "Quadro branco individual para feedback imediato de procedimento.",
+        "Listas graduadas (nível 1→3) para ajustar a dificuldade."
+      ],
+      avaliacaoFormativa: "Saída-ticket explicando a estratégia usada; rubrica simples (clareza, procedimento, verificação do resultado)."
+    }
+  ],
+  2:[
+    "Espaço e forma / Convivendo com a geometria",
+    "MT6T2D6.PB9",
+    "Reconhecer ângulos como mudança de direção ou giros, identificando ângulos retos e não-retos.",
+    {
+      metodologiasAtivas: [
+        "Caça aos ângulos na escola: fotografar e classificar (reto, agudo, obtuso).",
+        "Laboratório de giros com transferidor e relógio analógico (¼, ½, ¾ de volta).",
+        "Programação tipo Logo/Blockly: desenhar figuras por giros.",
+        "GeoGebra: medir e arrastar para perceber variações do ângulo."
+      ],
+      jogos: [
+        "Twister dos Ângulos (pisar no cartaz correto: reto/agudo/obtuso).",
+        "Roleta Gira e Mede (spinner com giros em graus).",
+        "Memory de Ângulos (medida ↔ representação)."
+      ],
+      intervencaoRapida: [
+        "Uso guiado do transferidor (sobreposição transparente).",
+        "Cartões de referência (90°, 45°, 120°) para comparação visual."
+      ],
+      avaliacaoFormativa: "Checklist de medição correta; mini-quiz prático de identificar/estimar ângulos em imagens."
+    }
+  ],
+  3:[
+    "Álgebra",
+    "EF06MA14",
+    "Reconhecer que a relação de igualdade não se altera ao adicionar, subtrair, multiplicar ou dividir os dois membros; usar isso para determinar valores desconhecidos.",
+    {
+      metodologiasAtivas: [
+        "Balança de Igualdade (pesos/objetos) para a ideia de manter o equilíbrio.",
+        "Erros intencionais: detectar e corrigir equações mal resolvidas.",
+        "Estações de equivalência: aplicar a mesma operação nos dois membros.",
+        "Pares tutorados: explicar passo a passo com ficha de raciocínio."
+      ],
+      jogos: [
+        "Escape Room da Igualdade (pistas que exigem manter o equilíbrio).",
+        "Cartas Mantenha o Equilíbrio (mesma operação nos dois lados).",
+        "Quebra-cabeças de igualdades (verdadeiras x falsas) com justificativa."
+      ],
+      intervencaoRapida: [
+        "Modelagem com sentenças numéricas antes de usar letras.",
+        "Regra visual (balança desenhada) colada no caderno."
+      ],
+      avaliacaoFormativa: "Ticket com uma igualdade para completar e explicar; observação de procedimentos em quadro individual."
+    }
+  ],
+  4:[
+    "Números e operações / Álgebra e funções",
+    "MT6T3D19.PB9",
+    "Resolver problema com números naturais envolvendo diferentes significados das operações (adição, subtração, multiplicação, divisão e potenciação).",
+    {
+      metodologiasAtivas: [
+        "Rotação por estações com problemas contextualizados.",
+        "Sala invertida: microaula em vídeo, prática orientada em sala.",
+        "PBL: orçamento de mini-evento da turma.",
+        "Think–Pair–Share: discutir estratégias e checagens."
+      ],
+      jogos: [
+        "Batalha de Operações.",
+        "Dominó problema–resultado.",
+        "Bingo das Potências.",
+        "Trilha dos Desafios."
+      ],
+      intervencaoRapida: [
+        "Material manipulável para sentido das operações.",
+        "Quadro individual para correções rápidas.",
+        "Listas graduadas (níveis)."
+      ],
+      avaliacaoFormativa: "Saída-ticket com explicitação da estratégia usada."
+    }
+  ],
+  5:[
+    "Espaço e forma / Convivendo com a geometria",
+    "MT6T2D3.PB9",
+    "Identificar propriedades de triângulos pela comparação de medidas de lados e ângulos.",
+    {
+      metodologiasAtivas: [
+        "Geoplano com elásticos: construir e classificar triângulos.",
+        "Dobraduras para investigar congruência e soma dos ângulos internos.",
+        "Investigação: desigualdade triangular com palitos.",
+        "Think–Pair–Build: maquete com canudos e conectores."
+      ],
+      jogos: [
+        "Tangram por tempo (classificar o triângulo predominante).",
+        "Bingo dos Triângulos (nome ↔ propriedade).",
+        "Roleta da Classificação (lado/ângulo)."
+      ],
+      intervencaoRapida: [
+        "Gabaritos plásticos de triângulos para comparação.",
+        "Tabela-âncora com exemplos e não-exemplos."
+      ],
+      avaliacaoFormativa: "Rubrica de classificação (critério, justificativa, precisão)."
+    }
+  ],
+  6:[
+    "Grandezas e Medidas / Vivenciando as medidas",
+    "MT6T3D15.PB9",
+    "Resolver problema utilizando relações entre diferentes unidades de medida.",
+    {
+      metodologiasAtivas: [
+        "Estações de medida (massa, volume, comprimento) com instrumentos reais.",
+        "Projeto receita/limonada: proporções e conversões em prática.",
+        "Linha do tempo do dia (horários, duração, intervalos).",
+        "QR-codes de autocorreção em trilha de conversões."
+      ],
+      jogos: [
+        "Mercado simulado (etiquetas em unidades diferentes).",
+        "Trilha Converte e Avança.",
+        "Dominó de Unidades (km↔m, kg↔g, L↔mL, h↔min↔s)."
+      ],
+      intervencaoRapida: [
+        "Escadas de unidade (setas e casas de 10/100/1000).",
+        "Quadros de equivalência na mesa para consulta rápida."
+      ],
+      avaliacaoFormativa: "Checklist de procedimento (unidade, fator, ordem de grandeza)."
+    }
+  ],
+  7:[
+    "Espaço e forma / Convivendo com a geometria",
+    "MT6T2D6.PB9",
+    "Reconhecer ângulos como mudança de direção ou giros, identificando ângulos retos e não-retos.",
+    {
+      metodologiasAtivas: [
+        "Caça aos ângulos com fotos e classificação.",
+        "Giros com relógio analógico e transferidor.",
+        "Desenho por comandos de giro (estilo Logo).",
+        "Medidas no GeoGebra."
+      ],
+      jogos: [
+        "Twister dos Ângulos.",
+        "Roleta Gira e Mede.",
+        "Memory de Ângulos."
+      ],
+      intervencaoRapida: [
+        "Transferidor com sobreposição.",
+        "Cartões de referência (90°, 45°, 120°)."
+      ],
+      avaliacaoFormativa: "Mini-quiz prático + checklist de medição."
+    }
+  ],
+  8:[
+    "Números e operações / Álgebra e funções",
+    "MT6T3D19.PB9",
+    "Resolver problema com números naturais envolvendo diferentes significados das operações (adição, subtração, multiplicação, divisão e potenciação).",
+    {
+      metodologiasAtivas: [
+        "Estações de problemas contextualizados.",
+        "Sala invertida + prática guiada.",
+        "PBL de orçamento.",
+        "Think–Pair–Share."
+      ],
+      jogos: [
+        "Batalha de Operações.",
+        "Dominó problema–resultado.",
+        "Bingo das Potências.",
+        "Trilha dos Desafios."
+      ],
+      intervencaoRapida: [
+        "Material manipulável.",
+        "Quadro individual.",
+        "Listas graduadas."
+      ],
+      avaliacaoFormativa: "Saída-ticket explicando o procedimento."
+    }
+  ],
+  9:[
+    "Grandezas e Medidas",
+    "MT6T2D15.PB9",
+    "Resolver problema envolvendo relações entre diferentes unidades de medida.",
+    {
+      metodologiasAtivas: [
+        "Medidas na vida real: fita métrica pela escola (estimar antes).",
+        "Receitas com variação de porções (regra de três intuitiva).",
+        "Relógios e cronômetros: início, término, duração.",
+        "Mapa simples: escalas e distância percorrida."
+      ],
+      jogos: [
+        "Estafeta das Medidas (estimar, medir, registrar, converter).",
+        "Bingo de equivalências (unidade ↔ valor).",
+        "Quebra-cabeça de escalas (mapas fragmentados)."
+      ],
+      intervencaoRapida: [
+        "Tabelas de prefixos e equivalências essenciais.",
+        "Modelos resolvidos de conversão passo a passo."
+      ],
+      avaliacaoFormativa: "Mini-rúbrica: unidade correta? operação certa? plausibilidade?"
+    }
+  ],
+  10:[
+    "Números e operações / Álgebra e funções",
+    "MT6T3D19.PB9",
+    "Resolver problema com números naturais envolvendo diferentes significados das operações (adição, subtração, multiplicação, divisão e potenciação).",
+    {
+      metodologiasAtivas: [
+        "Rotação por estações.",
+        "Sala invertida + prática.",
+        "PBL de orçamento.",
+        "Think–Pair–Share."
+      ],
+      jogos: [
+        "Batalha de Operações.",
+        "Dominó problema–resultado.",
+        "Bingo das Potências.",
+        "Trilha dos Desafios."
+      ],
+      intervencaoRapida: [
+        "Manipuláveis.",
+        "Quadro individual.",
+        "Listas graduadas."
+      ],
+      avaliacaoFormativa: "Saída-ticket com checagem de resultado."
+    }
+  ],
+  11:[
+    "Espaço e forma / Convivendo com a geometria",
+    "MT6T2D6.PB9",
+    "Reconhecer ângulos como mudança de direção ou giros, identificando ângulos retos e não-retos.",
+    {
+      metodologiasAtivas: [
+        "Caça aos ângulos (fotos) e classificação.",
+        "Giros com relógio e transferidor.",
+        "Comandos de giro no papel quadriculado.",
+        "GeoGebra para medir."
+      ],
+      jogos: [
+        "Twister dos Ângulos.",
+        "Roleta Gira e Mede.",
+        "Memory de Ângulos."
+      ],
+      intervencaoRapida: [
+        "Transferidor guiado.",
+        "Cartões de referência."
+      ],
+      avaliacaoFormativa: "Checklist + mini-quiz prático."
+    }
+  ],
+  12:[
+    "Números e operações / Álgebra e funções",
+    "MT6T3D19.PB9",
+    "Resolver problema com números naturais envolvendo diferentes significados das operações (adição, subtração, multiplicação, divisão e potenciação).",
+    {
+      metodologiasAtivas: [
+        "Estações de problemas.",
+        "Sala invertida + prática.",
+        "PBL de orçamento.",
+        "Think–Pair–Share."
+      ],
+      jogos: [
+        "Batalha de Operações.",
+        "Dominó problema–resultado.",
+        "Bingo das Potências.",
+        "Trilha dos Desafios."
+      ],
+      intervencaoRapida: [
+        "Manipuláveis.",
+        "Quadro individual.",
+        "Listas graduadas."
+      ],
+      avaliacaoFormativa: "Saída-ticket explicando a estratégia."
+    }
+  ],
+  13:[
+    "Tratamento da informação",
+    "MT6T4D75.SP9",
+    "Resolver problema envolvendo informações apresentadas em tabelas ou gráficos.",
+    {
+      metodologiasAtivas: [
+        "Coleta de dados da turma e escolha do gráfico adequado.",
+        "Gráfico humano no pátio (colunas com pessoas).",
+        "Jigsaw: cada grupo estuda e ensina um tipo de gráfico.",
+        "Análise crítica de manipulações (eixos quebrados, escalas enganosas)."
+      ],
+      jogos: [
+        "Loteria de Gráficos (cartelas variadas).",
+        "Bingo de tendências (maior/menor, cresce/decresce).",
+        "Quem mentiu? (achar o erro em um gráfico suspeito)."
+      ],
+      intervencaoRapida: [
+        "Modelo de leitura: título, eixos, unidade, fonte.",
+        "Tabela → gráfico (um exemplo guiado)."
+      ],
+      avaliacaoFormativa: "Rubrica curta: identifica título/eixos? escolhe gráfico adequado? interpreta comparações?"
+    }
+  ],
+  14:[
+    "Espaço e forma / Convivendo com a geometria",
+    "MT6T2D6.PB9",
+    "Reconhecer ângulos como mudança de direção ou giros, identificando ângulos retos e não-retos.",
+    {
+      metodologiasAtivas: [
+        "Caça aos ângulos.",
+        "Laboratório de giros.",
+        "Comandos de giro (Logo/Blockly).",
+        "GeoGebra para medir."
+      ],
+      jogos: [
+        "Twister dos Ângulos.",
+        "Roleta Gira e Mede.",
+        "Memory de Ângulos."
+      ],
+      intervencaoRapida: [
+        "Transferidor guiado.",
+        "Cartões de referência."
+      ],
+      avaliacaoFormativa: "Mini-quiz prático + checklist."
+    }
+  ],
+  15:[
+    "Números e operações / Álgebra e funções",
+    "MT6T3D19.PB9",
+    "Resolver problema com números naturais envolvendo diferentes significados das operações (adição, subtração, multiplicação, divisão e potenciação).",
+    {
+      metodologiasAtivas: [
+        "Estações com problemas contextualizados.",
+        "Sala invertida + prática guiada.",
+        "PBL de orçamento.",
+        "Think–Pair–Share."
+      ],
+      jogos: [
+        "Batalha de Operações.",
+        "Dominó problema–resultado.",
+        "Bingo das Potências.",
+        "Trilha dos Desafios."
+      ],
+      intervencaoRapida: [
+        "Manipuláveis.",
+        "Quadro individual.",
+        "Listas graduadas."
+      ],
+      avaliacaoFormativa: "Saída-ticket com verificação do resultado."
+    }
+  ],
+  16:[
+    "Espaço e forma / Convivendo com a geometria",
+    "MT6T2D6.PB9",
+    "Reconhecer ângulos como mudança de direção ou giros, identificando ângulos retos e não-retos.",
+    {
+      metodologiasAtivas: [
+        "Caça aos ângulos.",
+        "Giros com relógio e transferidor.",
+        "Logo/Blockly: giros e trajetórias.",
+        "GeoGebra para medir e arrastar."
+      ],
+      jogos: [
+        "Twister dos Ângulos.",
+        "Roleta Gira e Mede.",
+        "Memory de Ângulos."
+      ],
+      intervencaoRapida: [
+        "Transferidor guiado.",
+        "Cartões de referência."
+      ],
+      avaliacaoFormativa: "Checklist de medição + mini-quiz prático."
+    }
+  ],
+  17:[
+    "Tratamento da informação",
+    "MT6T4D75.SP9",
+    "Resolver problema envolvendo informações apresentadas em tabelas ou gráficos.",
+    {
+      metodologiasAtivas: [
+        "Coleta real de dados + escolha do gráfico.",
+        "Gráfico humano (colunas de pessoas).",
+        "Jigsaw de tipos de gráfico.",
+        "Análise crítica de manipulações."
+      ],
+      jogos: [
+        "Loteria de Gráficos.",
+        "Bingo de tendências.",
+        "Quem mentiu? (erro em gráfico)."
+      ],
+      intervencaoRapida: [
+        "Modelo de leitura (título/eixos/unidade/fonte).",
+        "Tabela → gráfico guiado."
+      ],
+      avaliacaoFormativa: "Rubrica curta de interpretação e escolha do gráfico."
+    }
+  ],
+  18:[
+    "Álgebra",
+    "EF06MA14",
+    "Reconhecer que a relação de igualdade não se altera ao adicionar, subtrair, multiplicar ou dividir os dois membros; usar isso para determinar valores desconhecidos.",
+    {
+      metodologiasAtivas: [
+        "Balança de Igualdade.",
+        "Erros intencionais para corrigir.",
+        "Estações de equivalência.",
+        "Pares tutorados com ficha de raciocínio."
+      ],
+      jogos: [
+        "Escape Room da Igualdade.",
+        "Cartas Mantenha o Equilíbrio.",
+        "Quebra-cabeças de igualdades."
+      ],
+      intervencaoRapida: [
+        "Sentenças numéricas antes de letras.",
+        "Regra visual colada no caderno."
+      ],
+      avaliacaoFormativa: "Ticket com igualdade para completar e explicar."
+    }
+  ],
+  19:[
+    "Grandezas e Medidas",
+    "MT6T2D15.PB9",
+    "Resolver problema envolvendo relações entre diferentes unidades de medida.",
+    {
+      metodologiasAtivas: [
+        "Medidas na escola com estimativa prévia.",
+        "Receitas com porções variáveis.",
+        "Cronometragem: início, término, duração.",
+        "Mapa com escalas simples."
+      ],
+      jogos: [
+        "Estafeta das Medidas.",
+        "Bingo de equivalências.",
+        "Quebra-cabeça de escalas."
+      ],
+      intervencaoRapida: [
+        "Tabelas de prefixos e equivalências.",
+        "Modelos resolvidos passo a passo."
+      ],
+      avaliacaoFormativa: "Mini-rúbrica de procedimento e plausibilidade."
+    }
+  ],
+  20:[
+    "Espaço e forma / Convivendo com a geometria",
+    "MT6T2D3.PB9",
+    "Identificar propriedades de triângulos pela comparação de medidas de lados e ângulos.",
+    {
+      metodologiasAtivas: [
+        "Geoplano e classificação.",
+        "Dobraduras e soma dos ângulos internos.",
+        "Desigualdade triangular com palitos.",
+        "Think–Pair–Build com canudos."
+      ],
+      jogos: [
+        "Tangram por tempo.",
+        "Bingo dos Triângulos.",
+        "Roleta da Classificação."
+      ],
+      intervencaoRapida: [
+        "Gabaritos plásticos.",
+        "Tabela-âncora de exemplos e não-exemplos."
+      ],
+      avaliacaoFormativa: "Rubrica de classificação (critério, justificativa, precisão)."
+    }
+  ],
+  21:[
+    "Álgebra",
+    "EF06MA14",
+    "Reconhecer que a relação de igualdade não se altera ao adicionar, subtrair, multiplicar ou dividir os dois membros; usar isso para determinar valores desconhecidos.",
+    {
+      metodologiasAtivas: [
+        "Balança de Igualdade.",
+        "Correção de erros intencionais.",
+        "Estações de equivalência.",
+        "Tutorias entre pares."
+      ],
+      jogos: [
+        "Escape Room da Igualdade.",
+        "Cartas Mantenha o Equilíbrio.",
+        "Quebra-cabeças de igualdades."
+      ],
+      intervencaoRapida: [
+        "Sentenças numéricas antes de letras.",
+        "Regra visual da balança."
+      ],
+      avaliacaoFormativa: "Ticket explicando a operação aplicada em ambos os membros."
+    }
+  ],
+  22:[
+    "Espaço e forma / Convivendo com a geometria",
+    "MT6T2D3.PB9",
+    "Identificar propriedades de triângulos pela comparação de medidas de lados e ângulos.",
+    {
+      metodologiasAtivas: [
+        "Geoplano e classificação.",
+        "Dobraduras para congruência.",
+        "Desigualdade triangular com palitos.",
+        "Maquete com canudos."
+      ],
+      jogos: [
+        "Tangram por tempo.",
+        "Bingo dos Triângulos.",
+        "Roleta da Classificação."
+      ],
+      intervencaoRapida: [
+        "Gabaritos plásticos.",
+        "Tabela-âncora de exemplos."
+      ],
+      avaliacaoFormativa: "Rubrica de classificação e justificativa."
+    }
+  ],
+  23:[
+    "Álgebra",
+    "EF06MA14",
+    "Reconhecer que a relação de igualdade não se altera ao adicionar, subtrair, multiplicar ou dividir os dois membros; usar isso para determinar valores desconhecidos.",
+    {
+      metodologiasAtivas: [
+        "Balança de Igualdade.",
+        "Erros intencionais.",
+        "Estações de equivalência.",
+        "Pares tutorados."
+      ],
+      jogos: [
+        "Escape Room da Igualdade.",
+        "Cartas Mantenha o Equilíbrio.",
+        "Quebra-cabeças de igualdades."
+      ],
+      intervencaoRapida: [
+        "Modelagem numérica antes de literal.",
+        "Regra visual permanente."
+      ],
+      avaliacaoFormativa: "Ticket de saída com resolução comentada."
+    }
+  ],
+  24:[
+    "Espaço e forma / Convivendo com a geometria",
+    "MT6T2D3.PB9",
+    "Identificar propriedades de triângulos pela comparação de medidas de lados e ângulos.",
+    {
+      metodologiasAtivas: [
+        "Geoplano e classificação.",
+        "Dobraduras e soma dos ângulos.",
+        "Desigualdade triangular (palitos).",
+        "Think–Pair–Build."
+      ],
+      jogos: [
+        "Tangram por tempo.",
+        "Bingo dos Triângulos.",
+        "Roleta da Classificação."
+      ],
+      intervencaoRapida: [
+        "Gabaritos plásticos.",
+        "Tabela-âncora."
+      ],
+      avaliacaoFormativa: "Rubrica de classificação com critério e justificativa."
+    }
+  ],
+  25:[
+    "Grandezas e Medidas",
+    "MT6T2D15.PB9",
+    "Resolver problema envolvendo relações entre diferentes unidades de medida.",
+    {
+      metodologiasAtivas: [
+        "Medidas reais pela escola (estimativa antes).",
+        "Receitas com porções variáveis.",
+        "Cronometragem e duração.",
+        "Mapa e escalas simples."
+      ],
+      jogos: [
+        "Estafeta das Medidas.",
+        "Bingo de equivalências.",
+        "Quebra-cabeça de escalas."
+      ],
+      intervencaoRapida: [
+        "Tabelas de equivalência.",
+        "Modelos resolvidos passo a passo."
+      ],
+      avaliacaoFormativa: "Mini-rúbrica de conversão e checagem de ordem de grandeza."
+    }
+  ],
+  26:[
+    "Espaço e forma / Convivendo com a geometria",
+    "MT6T2D3.PB9",
+    "Identificar propriedades de triângulos pela comparação de medidas de lados e ângulos.",
+    {
+      metodologiasAtivas: [
+        "Geoplano e classificação.",
+        "Dobraduras para congruência e soma dos ângulos.",
+        "Desigualdade triangular com palitos.",
+        "Think–Pair–Build (maquetes)."
+      ],
+      jogos: [
+        "Tangram por tempo.",
+        "Bingo dos Triângulos.",
+        "Roleta da Classificação."
+      ],
+      intervencaoRapida: [
+        "Gabaritos plásticos.",
+        "Tabela-âncora de exemplos e não-exemplos."
+      ],
+      avaliacaoFormativa: "Rubrica de classificação com justificativa do critério."
+    }
+  ]
+};
+
+
+    // 7º ano
+    const questoes_7 = {
+  1:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT7T1D10.SP9",
+    "Resolver problema com números inteiros envolvendo as operações (adição, subtração, multiplicação, divisão, potenciação).",
+    {
+      metodologiasAtivas: [
+        "Linha numérica humana: deslocamentos para somar/subtrair inteiros (ganhos/perdas, temperatura).",
+        "Modelagem com fichas bicolores (positivo/negativo) para representar operações.",
+        "PBL: ‘placar de campeonato’ com vitórias (+3), empates (+1), derrotas (−1).",
+        "Sala invertida com vídeo curto sobre regras de sinais + prática guiada."
+      ],
+      jogos: [
+        "Batalha de Inteiros (cartas com operações e resultados).",
+        "Dominó de Sinais (par resultado ↔ expressão).",
+        "Trilha do Elevador (andares positivos e negativos).",
+        "Bingo das Potências de inteiros (quadrados e cubos)."
+      ],
+      intervencaoRapida: [
+        "Resumo visual das regras de sinais (multiplicação/divisão).",
+        "Quadro branco individual para feedback imediato.",
+        "Sequências graduadas (nível 1→3) com verificação de plausibilidade."
+      ],
+      avaliacaoFormativa: "Ticket de saída: justificar o sinal e conferir o resultado em contexto (ganho/perda, temperatura)."
+    }
+  ],
+  2:[
+    "Grandezas e Medidas / Vivenciando as medidas",
+    "MT7T3D67.SP9",
+    "Resolver problema envolvendo o cálculo de área de figuras planas.",
+    {
+      metodologiasAtivas: [
+        "Geoplano e malha quadriculada para decompor e recompor áreas.",
+        "Dissecação (Tangram/Pentominós) para deduzir fórmulas.",
+        "Estudo de caso: área de piso/parede em planta simples.",
+        "GeoGebra: arrastar vértices e observar variação de área."
+      ],
+      jogos: [
+        "Bingo das Áreas (retângulo, triângulo, paralelogramo, trapézio).",
+        "Tapa-Área (cartas com figuras e dimensões).",
+        "Quebra-cabeça de mosaicos com metas de área."
+      ],
+      intervencaoRapida: [
+        "Mapa mental de fórmulas com unidades (u²).",
+        "Checklist: identificar figura, escolher fórmula, substituir, calcular, interpretar."
+      ],
+      avaliacaoFormativa: "Mini-rúbrica (escolha da fórmula, cálculo correto, unidade adequada e interpretação do contexto)."
+    }
+  ],
+  3:[
+    "Interagindo com números e funções",
+    "MT7T1D17.SP9",
+    "Resolver situação-problema utilizando porcentagem.",
+    {
+      metodologiasAtivas: [
+        "Linha numérica dupla e barra de porcentagens (10%, 25%, 50%, 75%, 100%).",
+        "Mercado simulado com descontos, acréscimos e impostos.",
+        "Estação de cálculo mental com âncoras (1%, 5%, 10%).",
+        "Sala invertida: vídeo curto + rotações com problemas reais."
+      ],
+      jogos: [
+        "Roleta dos Descontos/Acrescimos.",
+        "Dominó de Porcentagens (fração/decimal/porcentagem).",
+        "Bingo % (equivalências rápidas e resultados típicos)."
+      ],
+      intervencaoRapida: [
+        "Quadro de equivalências: 10% = ÷10; 5% = ÷20; 1% = ÷100.",
+        "Tabela proporcional (valor base, % e valor)."
+      ],
+      avaliacaoFormativa: "Ticket: escolher estratégia (âncora, proporção, fração) e justificar o procedimento."
+    }
+  ],
+  4:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT7T1D32.PB9",
+    "Identificar a expressão algébrica que expressa uma regularidade observada em sequências de números ou figuras (padrões).",
+    {
+      metodologiasAtivas: [
+        "Padrões com blocos/azulejos: construir termos e registrar tabela n→an.",
+        "Máquina-função (entrada/saída) para generalização.",
+        "Investigar crescimento linear x não linear em gráficos simples.",
+        "Think–Pair–Share: explicar a regra do n-ésimo termo."
+      ],
+      jogos: [
+        "‘Qual é a regra?’ (descobrir a expressão a partir de termos).",
+        "Dominó de Padrões (representação ↔ expressão ↔ próximo termo).",
+        "Bingo n-ésimo termo."
+      ],
+      intervencaoRapida: [
+        "Modelo de tabela (n, termo, variação) e passagem para expressão.",
+        "Contraexemplo para testar se a regra funciona para vários n."
+      ],
+      avaliacaoFormativa: "Rubrica curta: identifica padrão? escreve expressão correta? valida para n diferentes?"
+    }
+  ],
+  5:[
+    "Espaço e forma / Convivendo com a geometria",
+    "MT7T2D11.PB9",
+    "Identificar os elementos principais do círculo e da circunferência e aplicar suas propriedades.",
+    {
+      metodologiasAtivas: [
+        "Exploração com barbante/compasso: raio, diâmetro, corda, arco.",
+        "Medir circunferências reais para estimar π e relação C=π·d.",
+        "GeoGebra: elementos do círculo e relações (d=2r).",
+        "Aplicações: rodas, tampas, relógios (problemas práticos)."
+      ],
+      jogos: [
+        "Bingo do Círculo (elemento ↔ definição/figura).",
+        "Dominó de Propriedades (raio, diâmetro, corda, arco).",
+        "Caça-elementos em fotos/objetos."
+      ],
+      intervencaoRapida: [
+        "Mapa visual com todos os elementos anotados.",
+        "Quadro de fórmulas: C=2πr=πd; A=πr² (quando pertinente)."
+      ],
+      avaliacaoFormativa: "Checklist: identifica corretamente? usa propriedades para resolver um problema contextualizado?"
+    }
+  ],
+  6:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT7T1D11.SP9",
+    "Ordenar ou identificar a localização de números racionais na reta numérica.",
+    {
+      metodologiasAtivas: [
+        "‘Varal’ de números (clothesline math) com cartões de frações/decimais.",
+        "Construção de retas com partições iguais e pontos intermediários.",
+        "Conversão fração↔decimal para comparação.",
+        "Debate rápido: ‘quem é maior?’ com justificativas visuais."
+      ],
+      jogos: [
+        "Alvo na Reta (acertar posições aproximadas).",
+        "Bingo de Comparação (>, <, =).",
+        "Dominó de equivalências (frações equivalentes/decimais)."
+      ],
+      intervencaoRapida: [
+        "Padronizar denominadores ou usar valor decimal para comparar.",
+        "Esboço de retas de referência (0, ½, 1, −1)."
+      ],
+      avaliacaoFormativa: "Ticket: marcar um racional na reta e explicar a escolha (partição/unidade)."
+    }
+  ],
+  7:[
+    "Espaço e forma / Convivendo com a geometria",
+    "MT7T1D7.PB9",
+    "Reconhecer que as imagens de uma figura construída por homotetia são semelhantes, identificando o que se altera ou não.",
+    {
+      metodologiasAtivas: [
+        "Dilatações em malha quadriculada com fator k.",
+        "Escalas em mapas/plantas simples (k e medidas).",
+        "GeoGebra: ferramenta ‘dilatação’ e observação de ângulos/lados.",
+        "Discussão: o que muda (medidas, perímetro, área) e o que não muda (ângulos, razão)."
+      ],
+      jogos: [
+        "Memory de Escalas (figura ↔ fator k).",
+        "Dominó de Semelhança (pares semelhantes e fator).",
+        "Caça-erros em figuras ‘quase semelhantes’."
+      ],
+      intervencaoRapida: [
+        "Tabela de razões: lado, perímetro (×k), área (×k²).",
+        "Checklist: ângulos preservados? razão constante?"
+      ],
+      avaliacaoFormativa: "Mini-rúbrica: identifica semelhança e calcula medidas com fator k corretamente."
+    }
+  ],
+  8:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT7T1D10.SP9",
+    "Resolver problema com inteiros envolvendo operações.",
+    {
+      metodologiasAtivas: [
+        "Linha numérica e fichas bicolores (ganhos/perdas).",
+        "PBL de pontuação (liga/torneio).",
+        "Sala invertida + rotações de exercícios contextualizados."
+      ],
+      jogos: [
+        "Batalha de Inteiros.",
+        "Dominó de Sinais.",
+        "Trilha do Elevador."
+      ],
+      intervencaoRapida: [
+        "Resumo de regras de sinais.",
+        "Quadro individual para feedback imediato."
+      ],
+      avaliacaoFormativa: "Ticket: explicar o sinal do resultado e checar coerência com o contexto."
+    }
+  ],
+  9:[
+    "Interagindo com números e funções",
+    "MT7T1D17.SP9",
+    "Resolver situação-problema utilizando porcentagem.",
+    {
+      metodologiasAtivas: [
+        "Linha dupla/barra de porcentagens.",
+        "Mercado simulado com descontos/juros simples.",
+        "Âncoras mentais (1%, 5%, 10%, 50%)."
+      ],
+      jogos: [
+        "Roleta dos Descontos.",
+        "Dominó de equivalências.",
+        "Bingo %."
+      ],
+      intervencaoRapida: [
+        "Tabela proporcional base–%–valor.",
+        "Conversões rápidas entre fração/decimal/%."
+      ],
+      avaliacaoFormativa: "Ticket com justificativa da estratégia de cálculo escolhida."
+    }
+  ],
+  10:[
+    "Grandezas e Medidas / Vivenciando as medidas",
+    "MT7T3D67.SP9",
+    "Resolver problema envolvendo o cálculo de área de figuras planas.",
+    {
+      metodologiasAtivas: [
+        "Malha quadriculada para decomposição de figuras.",
+        "Dissecação (deduzindo fórmulas).",
+        "Planta simples: estimar e calcular materiais."
+      ],
+      jogos: [
+        "Bingo das Áreas.",
+        "Tapa-Área.",
+        "Mosaicos com metas de área."
+      ],
+      intervencaoRapida: [
+        "Mapa de fórmulas + unidades.",
+        "Checklist de passos (identificar, escolher, substituir, calcular)."
+      ],
+      avaliacaoFormativa: "Mini-rúbrica de procedimento e unidade correta (u²)."
+    }
+  ],
+  11:[
+    "Interagindo com números e funções",
+    "MT7T1D17.SP9",
+    "Resolver situação-problema utilizando porcentagem.",
+    {
+      metodologiasAtivas: [
+        "Barra de porcentagens + problemas de aumento/redução sucessiva.",
+        "Comparação de estratégias (regra de três, fator multiplicativo, âncoras).",
+        "Estação de cálculo mental com percentuais comuns."
+      ],
+      jogos: [
+        "Roleta %.",
+        "Dominó de equivalências.",
+        "Mercadinho dos Descontos."
+      ],
+      intervencaoRapida: [
+        "Âncoras: 10%, 5%, 1% e composições.",
+        "Tabela proporcional estruturada."
+      ],
+      avaliacaoFormativa: "Ticket com explicação do método e verificação por estimativa."
+    }
+  ],
+  12:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT7T1D32.PB9",
+    "Identificar expressão algébrica de padrões.",
+    {
+      metodologiasAtivas: [
+        "Construção de padrões com blocos e registro n→an.",
+        "Máquina-função e generalização do termo n.",
+        "Comparar crescimento linear x quadrático em exemplos simples."
+      ],
+      jogos: [
+        "Qual é a Regra?",
+        "Dominó de Padrões.",
+        "Bingo n-ésimo termo."
+      ],
+      intervencaoRapida: [
+        "Modelo de tabela e teste com n diferentes.",
+        "Contraexemplos para validar a regra."
+      ],
+      avaliacaoFormativa: "Rubrica: encontra padrão? expressa corretamente? valida?"
+    }
+  ],
+  13:[
+    "Espaço e forma / Convivendo com a geometria",
+    "MT7T2D11.PB9",
+    "Elementos do círculo/circunferência e propriedades.",
+    {
+      metodologiasAtivas: [
+        "Exploração com barbante/compasso (raio, diâmetro, corda).",
+        "Estimativa de π medindo objetos circulares.",
+        "GeoGebra: elementos e relações (d=2r)."
+      ],
+      jogos: [
+        "Bingo do Círculo.",
+        "Dominó de Propriedades.",
+        "Caça-elementos em imagens."
+      ],
+      intervencaoRapida: [
+        "Mapa visual dos elementos.",
+        "Quadro de fórmulas C=2πr, A=πr² (quando aplicável)."
+      ],
+      avaliacaoFormativa: "Checklist de identificação + problema curto aplicando uma propriedade."
+    }
+  ],
+  14:[
+    "Espaço e forma / Convivendo com a geometria",
+    "MT7T1D7.PB9",
+    "Semelhança por homotetia.",
+    {
+      metodologiasAtivas: [
+        "Dilatações na malha com fator k.",
+        "Escalas em mapas/plantas e objetos reais.",
+        "GeoGebra: dilatação e análise do que muda e não muda."
+      ],
+      jogos: [
+        "Memory de Escalas.",
+        "Dominó de Semelhança.",
+        "Caça-erros (figuras não proporcionais)."
+      ],
+      intervencaoRapida: [
+        "Tabela: lados×k, perímetro×k, área×k².",
+        "Checklist de preservação de ângulos."
+      ],
+      avaliacaoFormativa: "Mini-rúbrica de identificação de semelhança e cálculo com k."
+    }
+  ],
+  15:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT7T1D11.SP9",
+    "Reta numérica – racionais.",
+    {
+      metodologiasAtivas: [
+        "Varal de números com frações e decimais.",
+        "Partição da unidade e marcação de pontos intermediários.",
+        "Conversões fração↔decimal para comparar."
+      ],
+      jogos: [
+        "Alvo na Reta.",
+        "Bingo de Comparação.",
+        "Dominó de equivalências."
+      ],
+      intervencaoRapida: [
+        "Padronizar denominadores ou converter a decimal.",
+        "Retas de referência (0, ½, 1, −1)."
+      ],
+      avaliacaoFormativa: "Ticket: localizar um racional e justificar com partições."
+    }
+  ],
+  16:[
+    "Interagindo com números e funções",
+    "MT7T1D17.SP9",
+    "Porcentagem em situações-problema.",
+    {
+      metodologiasAtivas: [
+        "Barra de porcentagens e linha dupla.",
+        "Comparação de estratégias (fator, regra de três).",
+        "Problemas de aumento/redução sucessiva."
+      ],
+      jogos: [
+        "Roleta %.",
+        "Dominó de equivalências.",
+        "Bingo %."
+      ],
+      intervencaoRapida: [
+        "Âncoras 1%/5%/10%/50%.",
+        "Tabela proporcional."
+      ],
+      avaliacaoFormativa: "Ticket com estimativa antes do cálculo e verificação."
+    }
+  ],
+  17:[
+    "Tratamento da informação",
+    "MT7T4D77.PB9",
+    "Resolver problemas usando a média aritmética.",
+    {
+      metodologiasAtivas: [
+        "‘Média como equilíbrio’: distribuir fichas para igualar quantidades.",
+        "Coleta de dados reais da turma e cálculo da média.",
+        "Analisar efeito de outliers na média vs. mediana."
+      ],
+      jogos: [
+        "Quebra-cabeça da Média (alcançar uma média-alvo movendo valores).",
+        "Bingo de Medidas de Tendência Central.",
+        "Dominó soma total ↔ média ↔ n."
+      ],
+      intervencaoRapida: [
+        "Organizador: média = soma/n; recuperar soma = média×n.",
+        "Comparar média e mediana em pequenos conjuntos."
+      ],
+      avaliacaoFormativa: "Rubrica: identifica dados, calcula corretamente e interpreta o resultado no contexto."
+    }
+  ],
+  18:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT7T1D11.SP9",
+    "Ordenar/posicionar racionais na reta numérica.",
+    {
+      metodologiasAtivas: [
+        "Varal de números e partições iguais.",
+        "Conversões fração↔decimal.",
+        "Debate ‘quem é maior?’ com justificativas."
+      ],
+      jogos: [
+        "Alvo na Reta.",
+        "Bingo de Comparação.",
+        "Dominó de equivalências."
+      ],
+      intervencaoRapida: [
+        "Padronizar denominadores.",
+        "Retas de referência para estimar posições."
+      ],
+      avaliacaoFormativa: "Ticket de marcação e explicação da localização."
+    }
+  ],
+  19:[
+    "Grandezas e Medidas / Vivenciando as medidas",
+    "MT7T3D67.SP9",
+    "Área de figuras planas.",
+    {
+      metodologiasAtivas: [
+        "Decomposição em malha.",
+        "Dissecação para fórmulas.",
+        "Planta simples: orçamento de material."
+      ],
+      jogos: [
+        "Bingo das Áreas.",
+        "Tapa-Área.",
+        "Mosaicos de metas."
+      ],
+      intervencaoRapida: [
+        "Mapa de fórmulas e unidades.",
+        "Checklist de passos."
+      ],
+      avaliacaoFormativa: "Mini-rúbrica: escolha de fórmula, cálculo e unidade (u²)."
+    }
+  ],
+  20:[
+    "Espaço e forma / Convivendo com a geometria",
+    "MT7T2D11.PB9",
+    "Elementos do círculo e propriedades.",
+    {
+      metodologiasAtivas: [
+        "Exploração com compasso/barbante.",
+        "Estimativa de π medindo objetos.",
+        "GeoGebra: raio, diâmetro, corda, arco."
+      ],
+      jogos: [
+        "Bingo do Círculo.",
+        "Dominó de Propriedades.",
+        "Caça-elementos."
+      ],
+      intervencaoRapida: [
+        "Mapa visual + fórmulas C e A.",
+        "Relação d=2r destacada."
+      ],
+      avaliacaoFormativa: "Checklist de identificação + problema curto aplicado."
+    }
+  ],
+  21:[
+    "Interagindo com números e funções",
+    "MT7T1D17.SP9",
+    "Porcentagem.",
+    {
+      metodologiasAtivas: [
+        "Barra/linha dupla de porcentagens.",
+        "Mercado simulado (descontos/impostos).",
+        "Âncoras de cálculo mental."
+      ],
+      jogos: [
+        "Roleta %.",
+        "Dominó de equivalências.",
+        "Bingo %."
+      ],
+      intervencaoRapida: [
+        "Tabela proporcional.",
+        "Conversões rápidas fração/decimal/%."
+      ],
+      avaliacaoFormativa: "Ticket justificando a estratégia escolhida e checando por estimativa."
+    }
+  ],
+  22:[
+    "Grandezas e Medidas / Vivenciando as medidas",
+    "MT7T3D67.SP9",
+    "Área de figuras planas.",
+    {
+      metodologiasAtivas: [
+        "Malha quadriculada e decomposição.",
+        "Dissecação de figuras para deduzir fórmulas.",
+        "Projeto de área (piso/pintura)."
+      ],
+      jogos: [
+        "Bingo das Áreas.",
+        "Tapa-Área.",
+        "Mosaicos."
+      ],
+      intervencaoRapida: [
+        "Mapa de fórmulas e unidades.",
+        "Checklist de cálculo e interpretação."
+      ],
+      avaliacaoFormativa: "Mini-rúbrica: fórmula correta, cálculo e unidade (u²)."
+    }
+  ],
+  23:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT7T1D32.PB9",
+    "Padrões – expressão algébrica.",
+    {
+      metodologiasAtivas: [
+        "Construir padrões com materiais e registrar tabela n→an.",
+        "Máquina-função e generalização do n-ésimo termo.",
+        "Comparar padrões lineares e não lineares em exemplos simples."
+      ],
+      jogos: [
+        "Qual é a Regra?",
+        "Dominó de Padrões.",
+        "Bingo n-ésimo termo."
+      ],
+      intervencaoRapida: [
+        "Modelo de tabela e teste com vários n.",
+        "Contraexemplos para validar a expressão."
+      ],
+      avaliacaoFormativa: "Rubrica: generaliza corretamente e valida a expressão."
+    }
+  ],
+  24:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT7T1D11.SP9",
+    "Reta numérica – racionais.",
+    {
+      metodologiasAtivas: [
+        "Varal de números (frações/decimais).",
+        "Partições e pontos intermediários.",
+        "Conversões fração↔decimal para comparar."
+      ],
+      jogos: [
+        "Alvo na Reta.",
+        "Bingo de Comparação.",
+        "Dominó de equivalências."
+      ],
+      intervencaoRapida: [
+        "Padronização de denominadores.",
+        "Retas de referência para estimar posições."
+      ],
+      avaliacaoFormativa: "Ticket: marcar e justificar a posição na reta."
+    }
+  ],
+  25:[
+    "Tratamento da informação",
+    "MT7T4D77.PB9",
+    "Média aritmética.",
+    {
+      metodologiasAtivas: [
+        "Média como equilíbrio (redistribuição de fichas).",
+        "Coleta de dados da turma e cálculo da média.",
+        "Discussão sobre outliers e impacto na média."
+      ],
+      jogos: [
+        "Meta-Média (alcançar média-alvo movendo valores).",
+        "Bingo de Média/Mediana/Moda.",
+        "Dominó soma ↔ média ↔ n."
+      ],
+      intervencaoRapida: [
+        "Organizador: média = soma/n; soma = média×n.",
+        "Comparar média e mediana em conjuntos simples."
+      ],
+      avaliacaoFormativa: "Rubrica: cálculo correto e interpretação do significado da média."
+    }
+  ],
+  26:[
+    "Grandezas e Medidas / Vivenciando as medidas",
+    "MT7T3D67.SP9",
+    "Área de figuras planas.",
+    {
+      metodologiasAtivas: [
+        "Decomposição em malha e dissecação.",
+        "Projeto aplicado (pintura/piso) com orçamento.",
+        "GeoGebra para variação de área."
+      ],
+      jogos: [
+        "Bingo das Áreas.",
+        "Tapa-Área.",
+        "Mosaicos com metas."
+      ],
+      intervencaoRapida: [
+        "Mapa de fórmulas + unidades.",
+        "Checklist de passos e conferência de plausibilidade."
+      ],
+      avaliacaoFormativa: "Mini-rúbrica de escolha de fórmula, cálculo e unidade (u²)."
+    }
+  ]
+};
+
+
+    // 8º ano
+   const questoes_8 = {
+  1:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT8T1D30.PB9",
+    "Calcular o valor numérico de uma expressão algébrica.",
+    {
+      metodologiasAtivas: [
+        "Rotação por estações: substituição, prioridade de operações (PEMDAS), potências e sinais.",
+        "Erros intencionais: detectar falhas comuns (−(−3), potência antes de multiplicação).",
+        "Máquina-função: entrada (x,y) → saída (valor) para diferentes pares.",
+        "Sala invertida: vídeo curto + checklist de cálculo passo a passo."
+      ],
+      jogos: [
+        "Batalha PEMDAS (cartas com expressões e prioridade).",
+        "Dominó de Expressões (expressão ↔ valor para dado x).",
+        "Bingo de Potências e Parênteses."
+      ],
+      intervencaoRapida: [
+        "Sublinhar termos e marcar prioridade ((), ^, ×/÷, +/−).",
+        "Testar com x=0, x=1 e x=−1 para checagem rápida.",
+        "Recalcular um passo com calculadora como verificação."
+      ],
+      avaliacaoFormativa: "Ticket: resolver uma expressão e destacar a ordem usada em cada passo."
+    }
+  ],
+  2:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT8T2D26.SP9",
+    "Resolver problema com números racionais envolvendo as operações.",
+    {
+      metodologiasAtivas: [
+        "Mercado/receita: somar/subtrair frações/decimais em contexto.",
+        "MDC/MMC em estação prática para adições com denominadores diferentes.",
+        "Linha numérica para estimar antes de calcular.",
+        "Debate de estratégias: fração comum vs. conversão para decimal."
+      ],
+      jogos: [
+        "Dominó de Frações (equivalências e operações).",
+        "Trilha das Frações (avança se simplificar corretamente).",
+        "Bingo de Decimais/Frações (resultados típicos)."
+      ],
+      intervencaoRapida: [
+        "Simplificar antes/depois; conferir ordem de grandeza.",
+        "Padronizar denominadores quando vantajoso.",
+        "Arredondar e estimar para validar o resultado."
+      ],
+      avaliacaoFormativa: "Checklist: escolheu a operação certa? denominador comum? simplificou? resposta faz sentido?"
+    }
+  ],
+  3:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT8T1D28.SP9",
+    "Resolver problema que envolva porcentagem.",
+    {
+      metodologiasAtivas: [
+        "Linha dupla/barra de porcentagens (1%, 5%, 10%, 25%, 50%).",
+        "Mercado simulado: descontos, acréscimos e impostos.",
+        "Comparar métodos: fator multiplicativo, regra de três, âncoras mentais."
+      ],
+      jogos: [
+        "Roleta dos Descontos/Acréscimos.",
+        "Dominó de % ↔ fração ↔ decimal.",
+        "Bingo % com resultados comuns (12,5%, 33⅓%, 66,6%)."
+      ],
+      intervencaoRapida: [
+        "Âncoras: 10% = ÷10; 5% = ÷20; 1% = ÷100.",
+        "Estimar antes (aproximar para números ‘redondos’)."
+      ],
+      avaliacaoFormativa: "Ticket: resolver e justificar a estratégia escolhida; validar com estimativa."
+    }
+  ],
+  4:[
+    "Vivenciando as medidas",
+    "MT8T3D67.SP9",
+    "Resolver problema envolvendo o cálculo de área de figuras planas.",
+    {
+      metodologiasAtivas: [
+        "Decomposição/recomposição em malha e em figuras compostas.",
+        "Dissecação (tangram/pentominós) para deduzir fórmulas.",
+        "Estudo de caso: orçamento de piso/pintura em planta simples."
+      ],
+      jogos: [
+        "Bingo das Áreas (retângulo, triângulo, trapézio, paralelogramo).",
+        "Tapa-Área (cartas com dimensões e metas).",
+        "Mosaicos com metas de área."
+      ],
+      intervencaoRapida: [
+        "Mapa de fórmulas + unidades (u²) visível em mesa.",
+        "Checklist: identificar figura → escolher fórmula → substituir → calcular → interpretar."
+      ],
+      avaliacaoFormativa: "Mini-rúbrica (fórmula adequada, cálculo correto, unidade e interpretação)."
+    }
+  ],
+  5:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT8T1D30.PB9",
+    "Valor numérico de expressão algébrica.",
+    {
+      metodologiasAtivas: [
+        "Tabela (x,y)→valor para comparar variação da expressão.",
+        "Erros intencionais focando sinais e expoentes.",
+        "Sala invertida + prática guiada por níveis."
+      ],
+      jogos: [
+        "Dominó expressão↔valor.",
+        "Bingo de prioridade de operações.",
+        "Roleta de parênteses e potências."
+      ],
+      intervencaoRapida: [
+        "Marcar prioridade e substituir com parênteses.",
+        "Checar com valores simples (0,1,−1)."
+      ],
+      avaliacaoFormativa: "Ticket explicando dois passos críticos da resolução."
+    }
+  ],
+  6:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT8T1D20.SP9",
+    "Resolver problema com números inteiros envolvendo as operações.",
+    {
+      metodologiasAtivas: [
+        "Linha numérica humana e fichas bicolores para ganhos/perdas.",
+        "PBL: ranking/placar com vitórias (+), derrotas (−).",
+        "Oficina de potências de inteiros em contextos simples."
+      ],
+      jogos: [
+        "Batalha de Inteiros (operações e sinais).",
+        "Trilha do Elevador (andares positivos/negativos).",
+        "Dominó de Regras de Sinais."
+      ],
+      intervencaoRapida: [
+        "Quadro de regras de sinais (×, ÷).",
+        "Estimativa do sinal final antes do cálculo."
+      ],
+      avaliacaoFormativa: "Ticket: justificar o sinal e conferir plausibilidade pelo contexto."
+    }
+  ],
+  7:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT8T1D30.PB9",
+    "Valor numérico de expressão algébrica.",
+    {
+      metodologiasAtivas: [
+        "Estações por tipos: sem/ com potência; com frações; com múltiplas variáveis.",
+        "Máquina-função para diferentes entradas (comparar efeitos).",
+        "Correção colaborativa com códigos de erro (sinal, expoente, prioridade)."
+      ],
+      jogos: [
+        "PEMDAS Sprint (tempo para resolver corretamente).",
+        "Dominó expressão↔valor.",
+        "Bingo de expoentes."
+      ],
+      intervencaoRapida: [
+        "Agrupar termos com colchetes ao substituir.",
+        "Verificar passo a passo com calculadora apenas para conferência."
+      ],
+      avaliacaoFormativa: "Rubrica curta: ordem correta, manipulação de sinais, resultado coerente."
+    }
+  ],
+  8:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT8T1D20.SP9",
+    "Inteiros – operações.",
+    {
+      metodologiasAtivas: [
+        "Linha numérica e termômetro para variações.",
+        "Problemas de saldo (banco, jogos, temperatura).",
+        "Sala invertida + prática em níveis."
+      ],
+      jogos: [
+        "Dominó de Sinais.",
+        "Trilha do Elevador.",
+        "Bingo de Inteiros."
+      ],
+      intervencaoRapida: [
+        "Resumo visual de sinais.",
+        "Checagem do sinal por estimativa."
+      ],
+      avaliacaoFormativa: "Ticket com explicação do procedimento e do sinal."
+    }
+  ],
+  9:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT8T1D32.PB9",
+    "Identificar expressão algébrica de padrões.",
+    {
+      metodologiasAtivas: [
+        "Construção de padrões (blocos/azulejos) e tabela n→ an.",
+        "Máquina-função e generalização do termo n.",
+        "Comparar linear x quadrático em exemplos simples."
+      ],
+      jogos: [
+        "Qual é a Regra? (descobrir expressão).",
+        "Dominó de Padrões (representação ↔ expressão).",
+        "Bingo n-ésimo termo."
+      ],
+      intervencaoRapida: [
+        "Teste a regra em n distintos (validação).",
+        "Usar diferença entre termos para suspeitar linearidade."
+      ],
+      avaliacaoFormativa: "Rubrica: identifica padrão, expressa corretamente e valida em 2+ valores."
+    }
+  ],
+  10:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT8T1D28.SP9",
+    "Porcentagem.",
+    {
+      metodologiasAtivas: [
+        "Linha dupla/barra de %; aumentos e reduções sucessivas.",
+        "Comparar fator multiplicativo x regra de três.",
+        "Mercado simulado com cupons e impostos."
+      ],
+      jogos: [
+        "Roleta %.",
+        "Dominó %–decimal–fração.",
+        "Bingo de percentuais comuns."
+      ],
+      intervencaoRapida: [
+        "Âncoras 1%/5%/10%.",
+        "Estimativa antes e conferência após."
+      ],
+      avaliacaoFormativa: "Ticket justificando a estratégia utilizada e a plausibilidade do resultado."
+    }
+  ],
+  11:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT8T2D26.SP9",
+    "Racionais – operações.",
+    {
+      metodologiasAtivas: [
+        "Receitas/medidas: frações em prática.",
+        "MDC/MMC para adições/subtrações.",
+        "Conversões fração↔decimal conforme o contexto."
+      ],
+      jogos: [
+        "Dominó de Frações.",
+        "Trilha das Operações com frações.",
+        "Bingo de equivalências."
+      ],
+      intervencaoRapida: [
+        "Simplificar resultados; conferir ordem de grandeza.",
+        "Escolher entre fração comum ou decimal pelo ganho de eficiência."
+      ],
+      avaliacaoFormativa: "Checklist: estratégia adequada, simplificação e interpretação no contexto."
+    }
+  ],
+  12:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT8T1D20.SP9",
+    "Inteiros – operações.",
+    {
+      metodologiasAtivas: [
+        "Termômetro/ladeira para somas e diferenças.",
+        "Quadro de sinais para × e ÷.",
+        "Problemas de variação acumulada (temperatura/saldo)."
+      ],
+      jogos: [
+        "Batalha de Inteiros.",
+        "Dominó de Sinais.",
+        "Trilha do Elevador."
+      ],
+      intervencaoRapida: [
+        "Regra de sinais à vista.",
+        "Estimativa do sinal do resultado."
+      ],
+      avaliacaoFormativa: "Ticket explicando por que o resultado é positivo/negativo."
+    }
+  ],
+  13:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT8T1D27.SP9",
+    "Sistema de equações do 1º grau.",
+    {
+      metodologiasAtivas: [
+        "Modelagem: preços/quantidades (duas variáveis).",
+        "Métodos de substituição e eliminação em estações.",
+        "Representação gráfica: interseção como solução."
+      ],
+      jogos: [
+        "Dominó (par (x,y) ↔ sistema).",
+        "Bingo de Soluções (cartelas com pares).",
+        "Escape Room: resolver pistas com sistemas."
+      ],
+      intervencaoRapida: [
+        "Organizador: alinhar termos e isolar variável.",
+        "Checar solução por substituição no original."
+      ],
+      avaliacaoFormativa: "Rubrica: escolha do método, organização, solução correta e verificação."
+    }
+  ],
+  14:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT8T1D20.SP9",
+    "Inteiros – operações.",
+    {
+      metodologiasAtivas: [
+        "Linha numérica + contextos (jogos, clima).",
+        "Sala invertida + rotações com níveis crescentes.",
+        "Discussão de estratégias para multiplicações com sinais."
+      ],
+      jogos: [
+        "Bingo de Inteiros.",
+        "Dominó de Sinais.",
+        "Trilha do Elevador."
+      ],
+      intervencaoRapida: [
+        "Resumo de regras de sinais fixado no caderno.",
+        "Estimativa do sinal final."
+      ],
+      avaliacaoFormativa: "Ticket: resolver um item e explicar a regra de sinais aplicada."
+    }
+  ],
+  15:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT8T1D30.PB9",
+    "Valor numérico de expressão algébrica.",
+    {
+      metodologiasAtivas: [
+        "Sequência graduada: sem/ com potência; frações; 2 variáveis.",
+        "Correção por pares com rubrica de passos.",
+        "Máquina-função para comparar efeitos de variar x."
+      ],
+      jogos: [
+        "PEMDAS Sprint.",
+        "Dominó expressão↔valor.",
+        "Bingo de parênteses e expoentes."
+      ],
+      intervencaoRapida: [
+        "Marcar prioridade e usar parênteses na substituição.",
+        "Teste rápido com x=1 e x=−1."
+      ],
+      avaliacaoFormativa: "Checklist de ordem correta e manipulação de sinais/expoentes."
+    }
+  ],
+  16:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT8T1D20.SP9",
+    "Inteiros – operações.",
+    {
+      metodologiasAtivas: [
+        "Termômetro e saldo bancário (variações).",
+        "Oficina de potências com inteiros.",
+        "Debate: diferentes caminhos para o mesmo resultado."
+      ],
+      jogos: [
+        "Batalha de Inteiros.",
+        "Dominó de Sinais.",
+        "Trilha do Elevador."
+      ],
+      intervencaoRapida: [
+        "Quadro de sinais.",
+        "Estimativa prévia do sinal."
+      ],
+      avaliacaoFormativa: "Ticket com explicação do sinal e verificação por estimativa."
+    }
+  ],
+  17:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT8T1D27.SP9",
+    "Sistema de equações do 1º grau.",
+    {
+      metodologiasAtivas: [
+        "Estações: substituição, eliminação e gráfico.",
+        "Modelagem de preços/combos (lanche, transporte, etc.).",
+        "Discussão: quando um método é mais vantajoso que outro."
+      ],
+      jogos: [
+        "Dominó de Sistemas.",
+        "Bingo de Soluções.",
+        "Escape Room de Sistemas."
+      ],
+      intervencaoRapida: [
+        "Alinhar termos; multiplicar equações para eliminar.",
+        "Checar solução em ambas as equações."
+      ],
+      avaliacaoFormativa: "Rubrica: organização, estratégia e verificação correta."
+    }
+  ],
+  18:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT8T1D30.PB9",
+    "Valor numérico de expressão algébrica.",
+    {
+      metodologiasAtivas: [
+        "Máquina-função com pares (x,y).",
+        "Erros intencionais focando prioridade e sinais.",
+        "Correção entre pares com roteiro."
+      ],
+      jogos: [
+        "Batalha PEMDAS.",
+        "Dominó expressão↔valor.",
+        "Bingo de expoentes."
+      ],
+      intervencaoRapida: [
+        "Parênteses na substituição para evitar ambiguidade.",
+        "Teste rápido com valores simples."
+      ],
+      avaliacaoFormativa: "Ticket descrevendo a ordem aplicada e um ponto de atenção."
+    }
+  ],
+  19:[
+    "Vivenciando as medidas",
+    "MT8T3D67.SP9",
+    "Área de figuras planas.",
+    {
+      metodologiasAtivas: [
+        "Decomposição de figuras compostas em peças conhecidas.",
+        "Projeto aplicado (pintura/piso) com orçamento real.",
+        "GeoGebra: arrastar vértices e observar a área variar."
+      ],
+      jogos: [
+        "Bingo das Áreas.",
+        "Tapa-Área.",
+        "Mosaicos com metas."
+      ],
+      intervencaoRapida: [
+        "Mapa de fórmulas + unidades.",
+        "Checklist de passos e conferência de plausibilidade."
+      ],
+      avaliacaoFormativa: "Mini-rúbrica de escolha de fórmula, cálculo e unidade (u²)."
+    }
+  ],
+  20:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT8T1D28.SP9",
+    "Porcentagem.",
+    {
+      metodologiasAtivas: [
+        "Problemas de aumento/redução sucessiva.",
+        "Comparar fator multiplicativo × regra de três × âncoras.",
+        "Mercado simulado com notas/cupons."
+      ],
+      jogos: [
+        "Roleta %.",
+        "Dominó de equivalências.",
+        "Bingo %."
+      ],
+      intervencaoRapida: [
+        "Âncoras 10%/5%/1%.",
+        "Estimativa inicial e conferência final."
+      ],
+      avaliacaoFormativa: "Ticket: explicar o método e validar por estimativa."
+    }
+  ],
+  21:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT8T1D32.PB9",
+    "Padrões – expressão algébrica.",
+    {
+      metodologiasAtivas: [
+        "Registrar n→an e diferenciar linear x não linear.",
+        "Máquina-função e justificativa do n-ésimo termo.",
+        "Validar a regra para 3 valores distintos."
+      ],
+      jogos: [
+        "Qual é a Regra?",
+        "Dominó de Padrões.",
+        "Bingo n-ésimo termo."
+      ],
+      intervencaoRapida: [
+        "Diferenças entre termos para ‘suspeitar’ linearidade.",
+        "Contraexemplos para refutar regras erradas."
+      ],
+      avaliacaoFormativa: "Rubrica: generaliza, valida e comunica a regra corretamente."
+    }
+  ],
+  22:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT8T1D20.SP9",
+    "Inteiros – operações.",
+    {
+      metodologiasAtivas: [
+        "Linha numérica e situações de variação.",
+        "Oficina de sinais (×, ÷) com exemplos guiados.",
+        "Sala invertida + prática em estações."
+      ],
+      jogos: [
+        "Batalha de Inteiros.",
+        "Dominó de Sinais.",
+        "Trilha do Elevador."
+      ],
+      intervencaoRapida: [
+        "Regra de sinais à vista.",
+        "Estimativa do sinal final antes do cálculo."
+      ],
+      avaliacaoFormativa: "Ticket justificando as escolhas e checando plausibilidade."
+    }
+  ],
+  23:[
+    "Probabilidade e estatística",
+    "EF08MA24",
+    "Classificar as frequências de uma variável contínua em classes para resumir dados.",
+    {
+      metodologiasAtivas: [
+        "Coleta real (alturas/tempos) e definição de número de classes (5–7).",
+        "Cálculo da amplitude e largura de classe; construção de tabela de frequências.",
+        "Histograma e polígono de frequências; análise de distribuição e outliers."
+      ],
+      jogos: [
+        "Quebra-cabeça de Histograma (reconstruir a partir de dados).",
+        "‘Adivinhe a distribuição’ (qual histograma pertence ao conjunto?).",
+        "Bingo de termos (classe, amplitude, ponto médio)."
+      ],
+      intervencaoRapida: [
+        "Passos-âncora: amplitude=(max−min)/k; classes contíguas [a,b).",
+        "Calcular pontos médios e frequências relativas/cumulativas."
+      ],
+      avaliacaoFormativa: "Rubrica: classes corretas (sem sobreposição), tabela coerente e gráfico consistente."
+    }
+  ],
+  24:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT8T2D26.SP9",
+    "Racionais – operações.",
+    {
+      metodologiasAtivas: [
+        "Receitas e medidas com frações/decimais.",
+        "MDC/MMC e conversões quando conveniente.",
+        "Estimativas para validar o resultado."
+      ],
+      jogos: [
+        "Dominó de Frações e Decimais.",
+        "Trilha das Operidas (adição/subtração/mult./div.).",
+        "Bingo de equivalências."
+      ],
+      intervencaoRapida: [
+        "Simplificar resultados; conferir unidade/ordem de grandeza.",
+        "Escolha consciente: fração comum x decimal."
+      ],
+      avaliacaoFormativa: "Checklist de procedimento e explicação da estratégia."
+    }
+  ],
+  25:[
+    "Tratamento da Informação",
+    "MT8T1D75.SP9",
+    "Resolver problema envolvendo informações em tabelas ou gráficos.",
+    {
+      metodologiasAtivas: [
+        "Coleta e organização de dados em tabela; escolha do gráfico adequado.",
+        "Leitura crítica (título, eixos, unidade, fonte) e possíveis vieses.",
+        "Comparar tendências e variações; responder perguntas interpretativas."
+      ],
+      jogos: [
+        "Loteria de Gráficos (tipos variados).",
+        "Bingo de tendências (cresce/decresce/estável).",
+        "‘Quem errou?’: detectar manipulações em gráficos."
+      ],
+      intervencaoRapida: [
+        "Roteiro de leitura: o que o gráfico mostra? o que não mostra?",
+        "Transformar tabela→gráfico e gráfico→tabela (um exemplo guiado)."
+      ],
+      avaliacaoFormativa: "Rubrica: escolha do gráfico, leitura correta e interpretação no contexto."
+    }
+  ],
+  26:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT8T1D27.SP9",
+    "Sistema de equações do 1º grau.",
+    {
+      metodologiasAtivas: [
+        "Modelagem (combos de preços/quantidades).",
+        "Estações: substituição, eliminação, gráfico.",
+        "Discussão: checagem da solução e sentido prático."
+      ],
+      jogos: [
+        "Dominó de Sistemas.",
+        "Bingo de pares solução.",
+        "Escape Room: pistas que exigem resolver sistemas."
+      ],
+      intervencaoRapida: [
+        "Alinhar termos; multiplicar para eliminar coeficientes.",
+        "Substituir para verificar em ambas as equações."
+      ],
+      avaliacaoFormativa: "Rubrica: organização, método adequado e verificação correta."
+    }
+  ]
+};
+
+
+    // 9º ano
+    const questoes_9 = {
+  1:[
+    "Vivenciando as medidas",
+    "MT9T3D59.SP9",
+    "Resolver problema utilizando unidades padronizadas (km/m/cm/mm, kg/g/mg, L/mL).",
+    {
+      metodologiasAtivas: [
+        "Estações de conversão (comprimento, massa, volume) com instrumentos reais.",
+        "Rotas no mapa: estimar e converter distâncias (km↔m).",
+        "Receitas: ajustar porções e converter L↔mL, kg↔g.",
+        "Linha de prefixos (k, h, da, –, d, c, m) com ‘passos’ de 10."
+      ],
+      jogos: [
+        "Trilha das Unidades (avança ao converter corretamente).",
+        "Dominó de equivalências (km↔m, g↔mg, L↔mL).",
+        "Bingo de Conversões rápidas."
+      ],
+      intervencaoRapida: [
+        "Escada de unidades desenhada antes de cada conversão.",
+        "Checklist: unidade inicial, fator, cálculo, unidade final."
+      ],
+      avaliacaoFormativa: "Mini-rúbrica: escolha da unidade, fator adequado e plausibilidade numérica."
+    }
+  ],
+  2:[
+    "Espaço e forma / Convivendo com a geometria",
+    "MT9T2D6.PB9",
+    "Reconhecer ângulos como giros; identificar retos e não-retos.",
+    {
+      metodologiasAtivas: [
+        "Giros com transferidor e bússola (90°, 180°, 270°, 360°).",
+        "Logo/Blockly: trajetórias por giros e ângulos.",
+        "GeoGebra: medir e classificar agudo/obtuso/raso/reto."
+      ],
+      jogos: [
+        "Twister dos Ângulos (pisar no tipo correto).",
+        "Roleta Gira e Mede.",
+        "Memory de medidas ↔ figura."
+      ],
+      intervencaoRapida: [
+        "Cartões-âncora (45°, 90°, 120°, 180°) para comparação.",
+        "Regra visual: giro em frações de volta (¼, ½, ¾)."
+      ],
+      avaliacaoFormativa: "Checklist de identificação e medição em imagens reais."
+    }
+  ],
+  3:[
+    "Grandezas e Medidas / Vivenciando as medidas",
+    "MT9T3D69.SP9",
+    "Resolver problema envolvendo noções de volume.",
+    {
+      metodologiasAtivas: [
+        "Cubagem: montar sólidos com cubinhos unitários e contar volume.",
+        "Medidas com becker/provetas: deslocamento de líquido.",
+        "Modelagem: caixa/armário (V de prismas) e capacidade em L."
+      ],
+      jogos: [
+        "Tetris 3D em papel (encaixar volumes conhecidos).",
+        "Bingo de volumes de prismas/caixas.",
+        "Dominó de unidades (cm³↔mL↔L)."
+      ],
+      intervencaoRapida: [
+        "Tabela de equivalências: 1 cm³ = 1 mL; 1 L = 1000 mL.",
+        "Esboço do sólido com dimensões antes de calcular."
+      ],
+      avaliacaoFormativa: "Rubrica: escolha da fórmula, unidade cúbica correta e interpretação."
+    }
+  ],
+  4:[
+    "Espaço e forma / Convivendo com a geometria",
+    "MT9T2D6.PB9",
+    "Ângulos e giros.",
+    {
+      metodologiasAtivas: [
+        "Trilhas de navegação por giros (N, L, S, O).",
+        "Medidas no GeoGebra com arraste de vértices.",
+        "Construções com compasso/transferidor."
+      ],
+      jogos: [
+        "Roleta dos Giros.",
+        "Bingo de classificação (agudo/obtuso/reto/raso).",
+        "Corrida da Medição (equipes)."
+      ],
+      intervencaoRapida: [
+        "Cartões-âncora de referência.",
+        "Registro do passo a passo de medição."
+      ],
+      avaliacaoFormativa: "Mini-quiz prático de leitura/estimativa de ângulos."
+    }
+  ],
+  5:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT9T1D12.SP9",
+    "Racionais – operações (adição, subtração, multiplicação, divisão e potenciação).",
+    {
+      metodologiasAtivas: [
+        "Mercado/receitas: operações com frações e decimais.",
+        "MDC/MMC em estações para somas e subtrações.",
+        "Comparação de estratégias: fração comum × decimal."
+      ],
+      jogos: [
+        "Dominó de frações (equivalências e operações).",
+        "Trilha das Operações Racionais.",
+        "Bingo de resultados típicos."
+      ],
+      intervencaoRapida: [
+        "Simplificar antes/depois; conferir ordem de grandeza.",
+        "Escolher forma mais eficiente (fração/decimal)."
+      ],
+      avaliacaoFormativa: "Checklist de procedimento + justificativa da estratégia."
+    }
+  ],
+  6:[
+    "Grandezas e Medidas / Vivenciando as medidas",
+    "MT9T3D69.SP9",
+    "Noções de volume.",
+    {
+      metodologiasAtivas: [
+        "Montagem de prismas com caixas e cálculo de V.",
+        "Deslocamento de água para medir objetos irregulares.",
+        "Comparar capacidade (L) × volume (m³/cm³)."
+      ],
+      jogos: [
+        "Bingo de unidades cúbicas.",
+        "Quebra-cabeça de caixas (encaixes com volume alvo).",
+        "Dominó cm³↔mL↔L."
+      ],
+      intervencaoRapida: [
+        "Tabela 1 cm³=1 mL; 1000 cm³=1 L.",
+        "Desenho com dimensões e fórmula destacada."
+      ],
+      avaliacaoFormativa: "Ticket explicando a escolha da unidade e da fórmula."
+    }
+  ],
+  7:[
+    "Vivenciando as medidas",
+    "MT9T3D59.SP9",
+    "Unidades padronizadas.",
+    {
+      metodologiasAtivas: [
+        "Estações de conversão com instrumentos.",
+        "Rotas/tempo: converter min↔h e km↔m.",
+        "Receitas e embalagens: L↔mL; kg↔g."
+      ],
+      jogos: [
+        "Trilha das Unidades.",
+        "Dominó de equivalências.",
+        "Bingo de prefixos."
+      ],
+      intervencaoRapida: [
+        "Escada de unidades desenhada.",
+        "Checklist de 4 passos de conversão."
+      ],
+      avaliacaoFormativa: "Mini-rúbrica de fator correto e resposta plausível."
+    }
+  ],
+  8:[
+    "Tratamento da informação",
+    "MT9T2D51.SP9",
+    "Propriedades dos polígonos (soma dos ângulos internos, diagonais, ângulo interno de polígonos regulares).",
+    {
+      metodologiasAtivas: [
+        "Descoberta da fórmula S=(n−2)·180° por dissecação em triângulos.",
+        "Construção de tabelas: n, S, ângulo interno regular, nº de diagonais n(n−3)/2.",
+        "GeoGebra: medir e verificar conjecturas."
+      ],
+      jogos: [
+        "Bingo de Polígonos (n ↔ propriedades).",
+        "Dominó (nome ↔ nº lados ↔ soma de ângulos).",
+        "‘Quem errou?’ em afirmações sobre polígonos."
+      ],
+      intervencaoRapida: [
+        "Mapa-resumo com fórmulas chave.",
+        "Exercício ‘dado n, calcule S e diagonais’."
+      ],
+      avaliacaoFormativa: "Rubrica: identifica n, aplica fórmula correta e interpreta."
+    }
+  ],
+  9:[
+    "Grandezas e Medidas / Vivenciando as medidas",
+    "MT9T3D69.SP9",
+    "Noções de volume.",
+    {
+      metodologiasAtivas: [
+        "Cubagem com blocos unitários.",
+        "Estimativa e medição por deslocamento.",
+        "Modelagem de caixas e tanques."
+      ],
+      jogos: [
+        "Bingo de volumes.",
+        "Dominó cm³↔mL↔L.",
+        "Mosaico 3D (encaixe de volumes)."
+      ],
+      intervencaoRapida: [
+        "Equivalências chave (cm³/mL/L).",
+        "Esboço com dimensões e unidades cúbicas."
+      ],
+      avaliacaoFormativa: "Checklist de unidade correta e coerência do resultado."
+    }
+  ],
+  10:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT9T1D12.SP9",
+    "Racionais – operações.",
+    {
+      metodologiasAtivas: [
+        "Receitas e custos: operações com frações/decimais.",
+        "MDC/MMC e conversões.",
+        "Estimar antes de calcular."
+      ],
+      jogos: [
+        "Trilha das Operações Racionais.",
+        "Dominó de Frações.",
+        "Bingo de equivalências."
+      ],
+      intervencaoRapida: [
+        "Simplificar resultados.",
+        "Escolher forma mais eficiente (fração/decimal)."
+      ],
+      avaliacaoFormativa: "Ticket com justificativa da estratégia e checagem por estimativa."
+    }
+  ],
+  11:[
+    "Tratamento da informação",
+    "MT9T2D51.SP9",
+    "Propriedades dos polígonos.",
+    {
+      metodologiasAtivas: [
+        "Tabelar n, S, ângulo interno e diagonais.",
+        "Dobraduras para visualizar triângulos internos.",
+        "GeoGebra para validar resultados."
+      ],
+      jogos: [
+        "Bingo de Polígonos.",
+        "Dominó n↔propriedades.",
+        "Quiz relâmpago de fórmulas."
+      ],
+      intervencaoRapida: [
+        "Formulário-âncora (S, ângulo interno, diagonais).",
+        "Exercícios-modelo resolvidos."
+      ],
+      avaliacaoFormativa: "Rubrica de aplicação correta de fórmulas."
+    }
+  ],
+  12:[
+    "Grandezas e Medidas / Vivenciando as medidas",
+    "MT9T3D69.SP9",
+    "Noções de volume.",
+    {
+      metodologiasAtivas: [
+        "Prática com recipientes graduados.",
+        "Comparar volume × capacidade.",
+        "Projetos de organização (caixas/armários)."
+      ],
+      jogos: [
+        "Bingo de unidades cúbicas.",
+        "Dominó cm³↔mL↔L.",
+        "Quebra-cabeça de caixas."
+      ],
+      intervencaoRapida: [
+        "Tabela de equivalências.",
+        "Esboço e fórmula antes do cálculo."
+      ],
+      avaliacaoFormativa: "Ticket explicando a unidade escolhida e o porquê."
+    }
+  ],
+  13:[
+    "Tratamento da informação",
+    "MT9T2D51.SP9",
+    "Propriedades dos polígonos.",
+    {
+      metodologiasAtivas: [
+        "Derivação coletiva de S=(n−2)·180°.",
+        "Cálculo de diagonais n(n−3)/2 e ângulo interno.",
+        "Validação com construções dinâmicas."
+      ],
+      jogos: [
+        "Bingo e dominó de propriedades.",
+        "‘Quem errou?’ nas afirmações de polígonos."
+      ],
+      intervencaoRapida: [
+        "Mapa de fórmulas em destaque.",
+        "Checklist de substituição correta."
+      ],
+      avaliacaoFormativa: "Mini-rúbrica de identificação de n e aplicação de fórmulas."
+    }
+  ],
+  14:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT9T1D27.PB9",
+    "Efetuar cálculos simples com valor aproximado de radicais.",
+    {
+      metodologiasAtivas: [
+        "Retângulo de quadrados perfeitos: localizar √N entre inteiros.",
+        "Método da média (refino) para aproximação de raízes.",
+        "Comparar aproximação por estimativa × calculadora (verificação)."
+      ],
+      jogos: [
+        "Bingo de raízes aproximadas.",
+        "Dominó (N ↔ intervalo entre quadrados perfeitos).",
+        "Desafio relâmpago de aproximações (1 casa decimal)."
+      ],
+      intervencaoRapida: [
+        "Tabela de quadrados perfeitos (1²…30²).",
+        "Escrever ‘entre a² e b²’ antes de estimar."
+      ],
+      avaliacaoFormativa: "Ticket: justificar por que √N está entre dois inteiros e refinar a aproximação."
+    }
+  ],
+  15:[
+    "Espaço e forma / Convivendo com a geometria",
+    "MT9T2D11.PB9",
+    "Reconhecer círculo/circunferência, elementos e relações.",
+    {
+      metodologiasAtivas: [
+        "Exploração com compasso/barbante: raio, diâmetro, corda, arco.",
+        "Estimativa de π medindo objetos e calculando C≈πd.",
+        "GeoGebra: elementos e relações (d=2r)."
+      ],
+      jogos: [
+        "Bingo do Círculo.",
+        "Dominó de elementos ↔ definições.",
+        "Caça-elementos em fotos/objetos."
+      ],
+      intervencaoRapida: [
+        "Mapa visual dos elementos + fórmulas C=2πr, A=πr².",
+        "Exercício curto aplicando uma propriedade."
+      ],
+      avaliacaoFormativa: "Checklist: identifica corretamente e usa relações em problema simples."
+    }
+  ],
+  16:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT9T3D19.PB9",
+    "Naturais – diferentes significados das operações.",
+    {
+      metodologiasAtivas: [
+        "Estações por significado (juntar, comparar, repartir, proporcionalidade).",
+        "PBL de orçamento/estoque com várias operações.",
+        "Think–Pair–Share: justificar a escolha da operação."
+      ],
+      jogos: [
+        "Trilha das Operações (qual usar?).",
+        "Dominó problema ↔ operação.",
+        "Bingo de potenciação em contextos."
+      ],
+      intervencaoRapida: [
+        "Sublinhar palavras-chave do enunciado.",
+        "Verificar com estimativa rápida."
+      ],
+      avaliacaoFormativa: "Ticket explicando a operação escolhida e o porquê."
+    }
+  ],
+  17:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT9T1D10.SP9",
+    "Inteiros – operações.",
+    {
+      metodologiasAtivas: [
+        "Linha numérica e termômetro (variações).",
+        "Placar/saldo (ganhos/perdas).",
+        "Oficina de regras de sinais (×, ÷)."
+      ],
+      jogos: [
+        "Batalha de Inteiros.",
+        "Trilha do Elevador.",
+        "Dominó de sinais."
+      ],
+      intervencaoRapida: [
+        "Resumo visual das regras de sinais.",
+        "Estimativa do sinal final antes do cálculo."
+      ],
+      avaliacaoFormativa: "Ticket justificando o sinal e checando plausibilidade."
+    }
+  ],
+  18:[
+    "Tratamento da informação",
+    "MT9T2D51.SP9",
+    "Propriedades dos polígonos.",
+    {
+      metodologiasAtivas: [
+        "Dissecação em triângulos para S=(n−2)·180°.",
+        "Tabelar n, S, ângulo interno, diagonais.",
+        "GeoGebra para validar medidas."
+      ],
+      jogos: [
+        "Bingo/ Dominó de propriedades.",
+        "Quiz relâmpago de fórmulas."
+      ],
+      intervencaoRapida: [
+        "Mapa-resumo de fórmulas.",
+        "Exercícios-modelo resolvidos."
+      ],
+      avaliacaoFormativa: "Rubrica de aplicação correta e explicação do procedimento."
+    }
+  ],
+  19:[
+    "Espaço e forma / Convivendo com a geometria",
+    "MT9T2D11.PB9",
+    "Círculo e circunferência.",
+    {
+      metodologiasAtivas: [
+        "Medir objetos circulares e estimar π.",
+        "GeoGebra: raio, diâmetro, corda, arco.",
+        "Problemas práticos (perímetro de roda/relógio)."
+      ],
+      jogos: [
+        "Bingo do Círculo.",
+        "Dominó de elementos.",
+        "Caça-elementos."
+      ],
+      intervencaoRapida: [
+        "Fórmulas C e A destacadas.",
+        "Relação d=2r em quadro-âncora."
+      ],
+      avaliacaoFormativa: "Checklist de identificação + problema curto aplicado."
+    }
+  ],
+  20:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT9T1D10.SP9",
+    "Inteiros – operações.",
+    {
+      metodologiasAtivas: [
+        "Linha numérica humana (deslocamentos).",
+        "Contextos: temperatura, dívidas, altitudes.",
+        "Sala invertida + prática graduada."
+      ],
+      jogos: [
+        "Dominó de Sinais.",
+        "Trilha do Elevador.",
+        "Bingo de Inteiros."
+      ],
+      intervencaoRapida: [
+        "Quadro de regras de sinais.",
+        "Estimativa do sinal do resultado."
+      ],
+      avaliacaoFormativa: "Ticket explicando a regra aplicada e a checagem por estimativa."
+    }
+  ],
+  21:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT9T1D12.SP9",
+    "Racionais – operações.",
+    {
+      metodologiasAtivas: [
+        "Receitas/medidas com frações/decimais em contexto.",
+        "MDC/MMC e conversões conforme conveniência.",
+        "Estimativa antes do cálculo para validar."
+      ],
+      jogos: [
+        "Trilha das Operações Racionais.",
+        "Dominó de Frações.",
+        "Bingo de equivalências."
+      ],
+      intervencaoRapida: [
+        "Simplificações estratégicas.",
+        "Escolha entre fração/decimal pela eficiência."
+      ],
+      avaliacaoFormativa: "Checklist de procedimento e coerência da resposta."
+    }
+  ],
+  22:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT9T3D19.PB9",
+    "Naturais – significados das operações.",
+    {
+      metodologiasAtivas: [
+        "Estações de problemas por significado da operação.",
+        "PBL de orçamento/estoque com justificativa da escolha.",
+        "Discussão comparando caminhos de solução."
+      ],
+      jogos: [
+        "Trilha das Operações.",
+        "Dominó problema ↔ operação.",
+        "Bingo de potenciação."
+      ],
+      intervencaoRapida: [
+        "Palavras-chave do enunciado sublinhadas.",
+        "Estimativa rápida para validar."
+      ],
+      avaliacaoFormativa: "Ticket explicando a operação usada e o motivo."
+    }
+  ],
+  23:[
+    "Vivenciando as medidas",
+    "MT9T3D59.SP9",
+    "Unidades padronizadas.",
+    {
+      metodologiasAtivas: [
+        "Rotas e tempos (km↔m; min↔h).",
+        "Receitas e embalagens (L↔mL; kg↔g).",
+        "Oficina de prefixos com linha de ‘passos de 10’."
+      ],
+      jogos: [
+        "Trilha das Unidades.",
+        "Dominó de equivalências.",
+        "Bingo de conversões."
+      ],
+      intervencaoRapida: [
+        "Escada de unidades.",
+        "Checklist: unidade inicial→fator→cálculo→final."
+      ],
+      avaliacaoFormativa: "Mini-rúbrica: fator correto e plausibilidade."
+    }
+  ],
+  24:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT9T3D19.PB9",
+    "Naturais – significados das operações.",
+    {
+      metodologiasAtivas: [
+        "Classificar enunciados por operação dominante.",
+        "PBL com metas e restrições (recursos limitados).",
+        "Think–Pair–Share sobre escolhas de estratégia."
+      ],
+      jogos: [
+        "Dominó problema ↔ operação.",
+        "Bingo das Operações.",
+        "Trilha com casas de justificativa."
+      ],
+      intervencaoRapida: [
+        "Modelo de solução (dados→operação→cálculo→checar).",
+        "Estimativa e verificação com cálculo mental."
+      ],
+      avaliacaoFormativa: "Ticket: por que essa operação e não outra?"
+    }
+  ],
+  25:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT9T1D10.SP9",
+    "Inteiros – operações.",
+    {
+      metodologiasAtivas: [
+        "Termômetro e saldo bancário (variações).",
+        "Oficina de multiplicação/divisão com sinais.",
+        "Discussão de diferentes caminhos de cálculo."
+      ],
+      jogos: [
+        "Batalha de Inteiros.",
+        "Dominó de Sinais.",
+        "Trilha do Elevador."
+      ],
+      intervencaoRapida: [
+        "Resumo visual das regras de sinais no caderno.",
+        "Estimativa do sinal final."
+      ],
+      avaliacaoFormativa: "Ticket explicando o sinal do resultado e a verificação por estimativa."
+    }
+  ],
+  26:[
+    "Números e Operações / Interagindo com números e funções",
+    "MT9T1D12.SP9",
+    "Racionais – operações.",
+    {
+      metodologiasAtivas: [
+        "Receitas e medidas reais com frações/decimais.",
+        "MDC/MMC e conversões quando necessário.",
+        "Estimativa e checagem de plausibilidade."
+      ],
+      jogos: [
+        "Trilha das Operações Racionais.",
+        "Dominó de Frações/Decimais.",
+        "Bingo de equivalências."
+      ],
+      intervencaoRapida: [
+        "Simplificar e padronizar denominadores quando útil.",
+        "Escolher representação (fração/decimal) mais eficiente."
+      ],
+      avaliacaoFormativa: "Checklist de procedimento, unidade e interpretação no contexto."
+    }
+  ]
+};
+
+
+    /* ============================
+       Estratégias por série
+       ============================ */
+
+    const estrategias_6 = {
+      "MT6T1D19.PB9":"Rotas de operações: jogo de tabuleiro em que cada casa exige uma operação (adição, subtração, multiplicação, divisão, potenciação) para avançar; estações de resolução colaborativa com cartões de contexto real (compras, repartições, potências em quadrículas).",
+      "MT6T2D6.PB9":"Caça-ângulos na escola: caça ao tesouro com QR codes indicando ‘vire 90°/45°/180°’; uso de transferidor gigante e apps de RA para identificar giros; mímica de giros em equipe.",
+      "EF06MA14":"Balança de igualdade: manipular ‘pesos’ dos dois lados para manter igualdade; jogo ‘pode ou não pode?’ (aplicar a mesma operação nos dois membros e verificar a validade).",
+      "MT6T3D19.PB9":"Estações de problemas: cada estação foca um significado da operação; cartas de ‘situações do cotidiano’ para escolher a operação adequada (jogo de correspondência).",
+      "MT6T2D3.PB9":"Tríade dos triângulos: construção com palitos/elásticos; dominó de classificação (acutângulo, retângulo, obtusângulo; equilátero, isósceles, escaleno).",
+      "MT6T3D15.PB9":"Cozinha das medidas: receita gamificada para converter unidades (ml↔L, g↔kg); corrida de conversões com cartas-desafio.",
+      "MT6T2D15.PB9":"Mercado das medidas: simular compras com etiquetas em diferentes unidades; jogo ‘troca rápida’ (converter e comparar cronometrado).",
+      "MT6T4D75.SP9":"Dados em ação: coleta real de dados da turma, construção de gráficos e quiz ‘interprete o gráfico’ com placar."
+    };
+
+    const estrategias_7 = {
+      "MT7T1D10.SP9":"Jogo do termômetro: deslocamentos na reta numérica simulam operações com inteiros; desafios em equipe para ‘zerar’ o saldo.",
+      "MT7T3D67.SP9":"Quebra-cabeça de áreas: decompor/combinar figuras em malha; ‘mercado de polígonos’ com orçamento de azulejos.",
+      "MT7T1D17.SP9":"Loja da turma: descontos/juros simples com dinheiro fictício; rotação por estações (gorjeta, impostos, promoções).",
+      "MT7T1D32.PB9":"Padrões com palitos/azulejos: generalizar a n-ésima figura; competição ‘descubra a regra’ e valide com tabela.",
+      "MT7T2D11.PB9":"Círculo em ação: barbante/compasso para raio/diâmetro; medir circunferências e aproximar π.",
+      "MT7T1D11.SP9":"Reta gigante no chão: ordenar racionais com cartões; corrida para posicionar frações/decimais.",
+      "MT7T1D7.PB9":"Homotetia com projetor/fotocópia: ampliar/reduzir e listar o que muda/não muda; caça às medidas proporcionais.",
+      "MT7T4D77.PB9":"Média com dados reais: passos/duração de estudos; planilha colaborativa e jogo de ‘quem erra ajusta’.",
+      "DEFAULT":"Aprendizagem por estações, pares ensinam pares e jogos com feedback imediato."
+    };
+
+    const estrategias_8 = {
+      "MT8T1D30.PB9":"Cartas de substituição: sorteie valores para variáveis e pontue por acerto do valor numérico; verificação cruzada.",
+      "MT8T2D26.SP9":"Receitas & escalas: racionais com multiplicadores (dobro/metade); corrida de cálculos com estimativa.",
+      "MT8T1D28.SP9":"Feira de descontos: % de aumento/desconto; disputa por melhor estratégia mental.",
+      "MT8T3D67.SP9":"Tangram e decomposição: compare estratégias de área; desafio ‘mesma área, formas diferentes’.",
+      "MT8T1D20.SP9":"Balanço de lucros/prejuízos: jogo de eventos com inteiros; justificar escolhas com expressões.",
+      "MT8T1D32.PB9":"Sequências visuais/numéricas: construir e generalizar a regra; validar com n grandes.",
+      "MT8T1D27.SP9":"Mini-mercado com 2 produtos: montar e resolver o sistema (substituição/eliminações) a partir de recibos.",
+      "EF08MA24":"Pesquisa da turma: agrupar dados contínuos em classes, construir histograma e discutir amplitude.",
+      "MT8T1D75.SP9":"Coletar dados e criar infográficos; quiz de interpretação com placar.",
+      "DEFAULT":"Rotações por estações, problemas reais e checklist de raciocínio."
+    };
+
+    const estrategias_9 = {
+      "MT9T3D59.SP9":"Estações de conversão: tempo cronometrado, justificando passos; ‘auditor’ da equipe valida unidades.",
+      "MT9T2D6.PB9":"Giros e bússola: trilhas de orientação na quadra; medir ângulos com transferidor digital.",
+      "MT9T3D69.SP9":"Volume com sólidos/recipientes graduados; estimar, medir e comparar.",
+      "MT9T1D12.SP9":"Racionais em contexto (tarifas, densidades); escolha da operação com justificativa.",
+      "MT9T2D51.SP9":"Polígonos em ação: construir e provar soma dos ângulos internos; bingo de diagonais e ângulos regulares.",
+      "MT9T1D27.PB9":"Radicais por estimativa: localizar raízes na reta por intervalos; jogo ‘acerta a casa decimal’.",
+      "MT9T2D11.PB9":"Círculo/circunferência: medir diâmetros/raios e relacionar com comprimento (aprox. de π).",
+      "MT9T3D19.PB9":"Significados das operações com naturais: escolha da operação em situações variadas e defesa oral.",
+      "MT9T1D10.SP9":"Inteiros em variações (temperatura, altitude): trilhas com subidas/descidas; conferir por expressão.",
+      "DEFAULT":"Problemas contextualizados, debate de métodos, jogos com placar e reavaliação rápida."
+    };
+
+    // Mapa de bancos por série
+    const bancos = {
+      6:{ questoes: questoes_6, estrategias: estrategias_6 },
+      7:{ questoes: questoes_7, estrategias: estrategias_7 },
+      8:{ questoes: questoes_8, estrategias: estrategias_8 },
+      9:{ questoes: questoes_9, estrategias: estrategias_9 }
+    };
+
+    // Estado atual
+    let serieAtiva = 6;
+
+    function setAno(ano){
+      serieAtiva = ano;
+      document.querySelectorAll('.serie-btn').forEach(b=>{
+        b.classList.toggle('active', String(b.dataset.ano) === String(ano));
+      });
+      document.getElementById('serieInfo').textContent = `Série ativa: ${ano}º ano`;
+      document.getElementById('relatorio').innerHTML = "";
+    }
+
+    function limpar(){
+      document.getElementById('aluno').value = "";
+      document.getElementById('turma').value = "";
+      document.getElementById('erros').value = "";
+      document.getElementById('relatorio').innerHTML = "";
+    }
+
+    function gerarRelatorio(){
+      const nome  = document.getElementById('aluno').value.trim();
+      const turma = document.getElementById('turma').value.trim();
+      const erros = document.getElementById('erros').value
+        .split(',')
+        .map(q => parseInt(q.trim(),10))
+        .filter(q => !isNaN(q) && q>=1 && q<=26);
+
+      const banco = bancos[serieAtiva];
+      const questoes = banco.questoes;
+      const estrategias = banco.estrategias;
+
+      const total = 26;
+      const acertos = total - erros.length;
+      const nota = Math.max(0, (acertos / total * 10));
+      let perfil = '';
+      if (nota < 3) perfil = 'Muito Crítico';
+      else if (nota < 6) perfil = 'Crítico';
+      else if (nota < 9) perfil = 'Intermediário';
+      else perfil = 'Adequado';
+
+      let rel = `
+        <div class="relatorio-header">
+          <h2 style="margin:0">Relatório de Habilidades com Dificuldades</h2>
+          <span class="tag">${serieAtiva}º ano</span>
+        </div>
+        <p><strong>Aluno:</strong> ${nome || "<span class='muted'>(não informado)</span>"}<br/>
+        <strong>Turma e Série:</strong> ${turma || "<span class='muted'>(não informado)</span>"}</p>
+        <p><strong>Nota:</strong> ${nota.toFixed(1)} <span class="muted">(${perfil})</span><br/>
+        <strong>Questões com Erro:</strong> ${erros.length ? erros.join(', ') : "<span class='muted'>nenhuma informada</span>"}</p>
+      `;
+
+      rel += `<table><tr><th>Questão</th><th>Competência</th><th>Descritor</th><th>Habilidade</th></tr>`;
+      const planos = [];
+      erros.forEach(q=>{
+        const dados = questoes[q];
+        if(dados){
+          const [comp, desc, hab] = dados;
+          rel += `<tr><td>${q}</td><td>${comp}</td><td>${desc}</td><td>${hab}</td></tr>`;
+          const estrategia =
+            (estrategias && estrategias[desc]) ? estrategias[desc] :
+            (estrategias && estrategias.DEFAULT) ? estrategias.DEFAULT :
+            "Utilizar recursos visuais e práticos.";
+          planos.push({ descritor: desc, habilidade: hab, estrategia });
+        } else {
+          rel += `<tr><td>${q}</td><td colspan="3"><em class="muted">Questão ${q} ainda não cadastrada para ${serieAtiva}º ano. Preencha o banco no código.</em></td></tr>`;
+        }
+      });
+      rel += `</table>`;
+
+      rel += `<h2>Plano de Reforço Personalizado (Metodologia Ativa & Jogos)</h2>`;
+      rel += `<table><tr><th>Descritor</th><th>Habilidade</th><th>Estratégia de Intervenção</th></tr>`;
+      if (planos.length){
+        planos.forEach(p=>{
+          rel += `<tr><td>${p.descritor}</td><td>${p.habilidade}</td><td>${p.estrategia}</td></tr>`;
+        });
+      } else {
+        rel += `<tr><td colspan="3"><em class="muted">Sem itens — verifique as questões com erro ou complete o banco da série.</em></td></tr>`;
+      }
+      rel += `</table>`;
+
+      rel += `
+        <div class="box">
+          <strong>Observação Final:</strong> O plano propõe atividades de <em>aprendizagem ativa</em> (estações, problemas do cotidiano, jogos de tabuleiro/cartas, tutoria por pares) para consolidar as lacunas. Ajuste a complexidade conforme o ritmo do aluno e realize reavaliação formativa após as práticas.
+        </div>
+      `;
+
+      document.getElementById('relatorio').innerHTML = rel;
+    }
+
+    // Série padrão ao abrir
+    setAno(6);
+  </script>
+</body>
+</html>
