@@ -2452,6 +2452,7 @@
         "Relação d=2r em quadro-âncora."
       ],
       avaliacaoFormativa: "Checklist de identificação + problema curto aplicado."
+    
     }
   ],
   20:[
@@ -2764,5 +2765,187 @@
     // Série padrão ao abrir
     setAno(6);
   </script>
+
+<!-- ===== Dificultar ver fonte + permitir imprimir (com canvas em códigos) ===== -->
+<script>
+(() => {
+  const CFG = {
+    selectors: "pre, code, .nocopy",   // alvos a serem "canvasizados"
+    blockKeys: true,                    // bloquear atalhos (menos Ctrl/⌘+P)
+    blockContext: true,                 // bloquear menu direito
+    userSelectPage: true,               // impedir seleção na página
+    devtoolsBlur: true,                 // borrar quando DevTools abrir
+    canvasize: true,                    // transformar blocos de código em canvas
+    watermark: "Conteúdo protegido",    // marca d'água no canvas
+    font: "14px 'Fira Code', Consolas, Menlo, monospace",
+    padding: 12,
+    lineHeight: 20,
+    bgColor: "#ffffff",
+    fgColor: "#111111",
+    wmColor: "rgba(0,0,0,0.08)",
+    maxWidth: null
+  };
+
+  /* ---------- CSS base ---------- */
+  const baseCSS = document.createElement("style");
+  baseCSS.textContent = `
+    ${CFG.userSelectPage ? `html,body{user-select:none;-webkit-user-select:none}` : ``}
+    input, textarea, [contenteditable="true"]{user-select:text;-webkit-user-select:text}
+    .__nocopy_wrapper{position:relative;display:inline-block;max-width:100%}
+    .__nocopy_wrapper canvas{display:block;max-width:100%}
+    .__nocopy_overlay{position:absolute;inset:0;pointer-events:auto}
+    .__nocopy_placeholder{display:none}
+    /* borrão quando DevTools aberto */
+    .__devtools body{filter:blur(10px) brightness(0.4); pointer-events:none}
+    /* impressão SEM bloqueios/sem borrão */
+    @media print{
+      html,body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+      .__nocopy_overlay{display:none!important}
+      .__nocopy_placeholder{display:none!important}
+      .__nocopy_wrapper canvas{display:block!important}
+      .__devtools body{filter:none!important}
+    }
+  `;
+  document.head.appendChild(baseCSS);
+
+  /* ---------- Bloqueios leves ---------- */
+  if (CFG.blockContext) {
+    document.addEventListener("contextmenu", e => e.preventDefault(), {capture:true});
+  }
+  if (CFG.blockKeys) {
+    document.addEventListener("keydown", e => {
+      const k = (e.key||"").toLowerCase();
+      const ctrl = e.ctrlKey || e.metaKey;
+      const shift = e.shiftKey;
+      // ✅ permitir imprimir
+      if (ctrl && k === "p") return;
+
+      // 🔒 devtools / view source / salvar / copiar etc.
+      if (e.keyCode === 123) { e.preventDefault(); return; }             // F12
+      if (ctrl && ["u","s","c","v","a"].includes(k)) { e.preventDefault(); return; }
+      if (ctrl && shift && ["i","j","c","k"].includes(k)) { e.preventDefault(); return; }
+    }, {capture:true});
+  }
+
+  /* ---------- Detector simples de DevTools (borrão) ---------- */
+  if (CFG.devtoolsBlur) {
+    let openPrev = false;
+    const TH = 160;
+    const check = () => {
+      const wOpen = (window.outerWidth - window.innerWidth) > TH;
+      const hOpen = (window.outerHeight - window.innerHeight) > TH;
+      const open = wOpen || hOpen;
+      if (open !== openPrev) {
+        openPrev = open;
+        document.documentElement.classList.toggle("__devtools", open);
+      }
+    };
+    setInterval(check, 500);
+    window.addEventListener("resize", check);
+  }
+
+  /* ---------- Transformar blocos de código em canvas ---------- */
+  function toCanvas(el) {
+    const text = (el.textContent || "").replace(/\r\n?/g,"\n");
+    if (!text.trim()) return;
+
+    const lines = text.split("\n");
+    const c = document.createElement("canvas");
+    const ctx = c.getContext("2d");
+    ctx.font = CFG.font;
+
+    let maxW = 0;
+    for (const ln of lines) {
+      const w = ctx.measureText(ln).width;
+      if (w > maxW) maxW = w;
+    }
+    const pad = CFG.padding, lh = CFG.lineHeight;
+    const W = Math.ceil((CFG.maxWidth || maxW) + pad*2);
+    const H = Math.ceil(lines.length * lh + pad*2);
+
+    c.width = W; c.height = H;
+
+    // fundo
+    ctx.fillStyle = CFG.bgColor; ctx.fillRect(0,0,W,H);
+
+    // marca d'água
+    if (CFG.watermark) {
+      ctx.save();
+      ctx.translate(W/2, H/2);
+      ctx.rotate(-Math.PI/6);
+      ctx.fillStyle = CFG.wmColor;
+      ctx.font = "bold 18px system-ui, sans-serif";
+      for (let y = -H; y < H; y += 120) {
+        for (let x = -W; x < W; x += 260) ctx.fillText(CFG.watermark, x, y);
+      }
+      ctx.restore();
+    }
+
+    // texto
+    ctx.fillStyle = CFG.fgColor;
+    ctx.font = CFG.font;
+    ctx.textBaseline = "top";
+    let y = pad;
+    for (const ln of lines) { ctx.fillText(ln, pad, y); y += lh; }
+
+    // wrapper + overlay
+    const wrap = document.createElement("div");
+    wrap.className = "__nocopy_wrapper";
+    const overlay = document.createElement("div");
+    overlay.className = "__nocopy_overlay";
+    overlay.title = "Conteúdo protegido";
+    overlay.addEventListener("mousedown", e => {e.preventDefault(); e.stopPropagation();}, {capture:true});
+    overlay.addEventListener("click", e => {e.preventDefault(); e.stopPropagation();}, {capture:true});
+
+    // troca no DOM
+    el.replaceWith(wrap);
+    wrap.appendChild(c);
+    wrap.appendChild(overlay);
+  }
+
+  function canvasizeTargets() {
+    if (!CFG.canvasize) return;
+    const nodes = Array.from(document.querySelectorAll(CFG.selectors));
+    nodes.forEach(toCanvas);
+  }
+
+  // Botão/função opcional para imprimir
+  window.printPage = () => window.print();
+
+  // autoexecuta
+  window.addEventListener("DOMContentLoaded", () => {
+    canvasizeTargets();
+    // modo rápido: #print na URL imprime direto
+    if (location.hash === "#print") setTimeout(() => window.print(), 300);
+  });
+
+  // modo professor (desliga proteção ao abrir com #dev)
+  if (location.hash === "#dev") {
+    document.documentElement.style.userSelect = "text";
+    document.removeEventListener("contextmenu", () => {});
+    document.onkeydown = null;
+    document.documentElement.classList.remove("__devtools");
+  }
+})();
+</script>
+<!-- (opcional) botão na página -->
+<div style="text-align:center; margin:16px 0;">
+  <button onclick="printPage()"
+    style="all:unset; display:inline-block; cursor:pointer; padding:.6rem 1rem; 
+           background:#fff; color:#111; border:1px solid #ccc; border-radius:8px;
+           box-shadow:0 1px 2px rgba(0,0,0,.06);">
+    Imprimir
+  </button>
+</div>
+
+
+
+
+
+
+
+
+  
 </body>
 </html>
+
